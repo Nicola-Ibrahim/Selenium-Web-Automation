@@ -1,4 +1,4 @@
-from Automator.Facbook.main import facebookMain 
+from Automator.Facebook.main import facebookMain 
 from Automator.Instagram.main import instagramMain
 
 
