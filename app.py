@@ -1,5 +1,5 @@
 from Automator.Facebook.main import facebookMain 
-from Automator.Instagram.main import instagramMain
+# from Automator.Instagram.main import instagramMain
 
 
 if __name__ == '__main__':

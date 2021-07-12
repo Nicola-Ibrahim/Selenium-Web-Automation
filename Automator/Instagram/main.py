@@ -1,6 +1,6 @@
 from ..WebAutomation import splitting
 import pandas as pd
-from instagram import Instagram
+from .instagram import Instagram
 import threading
 
 def instagramMain():

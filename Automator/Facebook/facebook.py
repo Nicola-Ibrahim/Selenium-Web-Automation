@@ -5,6 +5,7 @@ A file should be used to store facebook accounts (email, password) and use them 
 from datetime import datetime
 import numpy as np
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common import keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -18,6 +19,7 @@ import re
 import logging
 import time
 import openpyxl
+import random
 
 class Facebook(WbAutomator):
     """Chile class automator"""
@@ -48,7 +50,7 @@ class Facebook(WbAutomator):
         self._MESSAGE_BUTTON_XPATH = "//div[@aria-label='Message' or @aria-label='مراسلة']"
         self._MESSAGE_TEXTBOX_XPATH = "//div[@aria-label='Aa']"
 
-        self._COMMENT_TEXTBOX_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/form/div/div/div[2]/div/div/div/div"
+        self._COMMENT_TEXTBOX_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/form/div/div/div[2]/div/div/div/div"
         self._LIKE_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"
 
         self._PAGE_FOLLOW_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[3]/div/div/div/div[2]/div/div/div[1]/div/div[1]/div[2]/span/span[contains(text(),'Like') or contains(text(),'أعجبني')]"
@@ -138,8 +140,23 @@ class Facebook(WbAutomator):
     def chat(self, message, profile_path):
         return super().chat( message, profile_path, self._MESSAGE_BUTTON_XPATH, self._MESSAGE_TEXTBOX_XPATH)
         
-    def addComment(self, post_path, comment):
-        return super().addComment(post_path, comment, self._COMMENT_TEXTBOX_XPATH)
+    def addCommentOnPost(self, post_path, comment):
+        return super().addCommentOnPost(post_path, comment, self._COMMENT_TEXTBOX_XPATH)
+
+    def addCommentOnPost2(self, comment):
+        """Add comment on a post"""
+        try:
+            
+            post_comment_box = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, self._COMMENT_TEXTBOX_XPATH)))
+            post_comment_box.send_keys(Keys.CONTROL, 'a', Keys.DELETE)
+            post_comment_box.send_keys(comment)
+
+            post_comment_box.send_keys(Keys.ENTER)
+
+            
+
+        except TimeoutException as e:
+            pass 
 
     def addLikeOnComment(self, post_path):
         return super().addLikeOnComment(post_path, self._VIEW_ALL_COMMETNS_XPATH)
@@ -204,13 +221,16 @@ class Facebook(WbAutomator):
     def addPageFollowingWorker(self, accounts_data, page_path):
         
         for _, row in accounts_data.iterrows():
-            start = time.perf_counter()
+            # start = time.perf_counter()
 
             self.login(email=row['email'], password=row['password2'])
             self.addPageFollowing(page_path=page_path)
             self.logout()
-            finish = time.perf_counter()
-            self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+            
+            
+            
+            # finish = time.perf_counter()
+            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
     def addPersonWorker(self, accounts_data, profile_path):
         
@@ -234,17 +254,66 @@ class Facebook(WbAutomator):
             finish = time.perf_counter()
             self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
     
-    def addLikeOnPostWorker(self, accounts_data, post_path):
+    def addCommentOnPostWorker(self, accounts_data, post_path):
         
         for _, row in accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
-            self.addLikeOnPost(post_path=post_path)
+            self.addCommentOnPost(post_path=post_path, comment='...')
             self.logout()
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
     
+    def addLikeOnPostWorker(self, accounts_file, accounts_data, post_path):
+        
+        worker_book = openpyxl.load_workbook(accounts_file)
+        sheet =  worker_book.active
+
+        for ind, row in accounts_data.iterrows():
+            # start = time.perf_counter()
+
+            self.login(email=row['Email'], password=row['Facebook password'])
+
+            ret = self.isProfileActive()
+            if(ret == False):
+                sheet.cell(ind + 2, 8).value = 'Inactive'
+                self.logout2(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH, self._LOUTGOUT_BUTTON2_XPATH)
+
+            elif(ret == True):
+                sheet.cell(ind + 2, 8).value = 'Active'
+                self.addLikeOnPost(post_path=post_path)
+                self.logout()
+
+            # finish = time.perf_counter()
+            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+    
+    def addLike_CommentOnPostWorker(self, accounts_file, accounts_data, post_path):
+        
+        worker_book = openpyxl.load_workbook(accounts_file)
+        sheet =  worker_book.active
+
+        comments = ['..','....','السعر',' سعر','السعر لو سمحت','عنوان','مقاسات']
+        for ind, row in accounts_data.iterrows():
+            # start = time.perf_counter()
+
+            self.login(email=row['Email'], password=row['Facebook password'])
+
+            ret = self.isProfileActive()
+            if(ret == False):
+                sheet.cell(ind + 2, 8).value = 'Inactive'
+                self.logout2(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH, self._LOUTGOUT_BUTTON2_XPATH)
+
+            elif(ret == True):
+                sheet.cell(ind + 2, 8).value = 'Active'
+                self.addLikeOnPost(post_path=post_path)
+                self.addCommentOnPost2("السعر")
+                self.logout()
+
+            # finish = time.perf_counter()
+            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+    
+
     def countNFreindsWorker(self,accounts_file, accounts_data):
         
         worker_book = openpyxl.load_workbook(accounts_file)
