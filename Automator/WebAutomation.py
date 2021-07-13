@@ -3,6 +3,7 @@ This the parent class that can be inherited to automate any website.
 If some forms as (login or logout ets...) have different shape then the method that responsiable about 
 that should be overriden.  
 """
+import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -20,13 +21,16 @@ import numpy as np
 
 class WbAutomator():
     """Parent class automator"""
-    def __init__(self, website):
+
+    def __init__(self, website, logfile_path):
         """Initial a Chrome driver"""
+        
+        # create new logger for testing 
+        self._logger = self.initLogger(logfile_path)
 
         # capa = DesiredCapabilities.CHROME
         # capa["pageLoadStrategy"] = "none"
 
-        
         options = Options()
         # options.add_argument('--headless')
         options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
@@ -42,6 +46,22 @@ class WbAutomator():
         # Navigate to specific website
         self.driver.get(self.website)
 
+
+    def initLogger(self, path):
+        """Intial new logger
+        path: logger file path
+        """
+        
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
+        
+        handler = logging.FileHandler(filename=path, mode='w')
+        handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s"))
+        logger.addHandler(handler)
+
+        return logger
+
+        
     def signUp(self):
         pass
 
