@@ -81,8 +81,8 @@ class Facebook(WbAutomator):
         self._COMMENT_TEXTBOX_XPATH2 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/form/div/div/div[1]"
                                     
                                         
-        self._LIKE_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"
-
+        self._LIKE_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span"
+                                    
         self._PAGE_FOLLOW_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[3]/div/div/div/div[2]/div/div/div[1]/div/div[1]/div[2]/span/span[contains(text(),'Like') or contains(text(),'أعجبني')]"
         self._ADD_PERSON_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[3]/div/div/div/div[2]/div/div/div/div[1]/div/div/div/div[1]/div[2]/span/span[contains(text(),'Add Friend') or contains(text(),'إضافة صديق')]"
 
@@ -170,25 +170,9 @@ class Facebook(WbAutomator):
         return super().chat( message, profile_path, self._MESSAGE_BUTTON_XPATH, self._MESSAGE_TEXTBOX_XPATH)
         
     def addCommentOnPost(self, post_path, comment):
-        return super().addCommentOnPost(post_path, comment, self._COMMENT_TEXTBOX_XPATH)
+        return super().addCommentOnPost(post_path, comment, self._COMMENT_TEXTBOX_XPATH, self._COMMENT_TEXTBOX_XPATH2)
 
-    def addCommentOnPost2(self, comment):
-        """Add comment on a post"""
-        try:
-            
-            post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._COMMENT_TEXTBOX_XPATH)))
-            post_comment_box.send_keys(comment)
-            post_comment_box.send_keys(Keys.ENTER)
-
-        except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
-            try:
-                post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._COMMENT_TEXTBOX_XPATH2)))
-                post_comment_box.send_keys(comment)
-                post_comment_box.send_keys(Keys.ENTER)
-
-            except TimeoutException as e:
-                return
-        
+  
     def addLikeOnComment(self, post_path):
         return super().addLikeOnComment(post_path, self._VIEW_ALL_COMMETNS_XPATH)
 
@@ -260,6 +244,7 @@ class Facebook(WbAutomator):
 
             if(self.isProfileActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
+                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addPageFollowing(page_path=page_path)
                 self.logout()
 
@@ -285,6 +270,7 @@ class Facebook(WbAutomator):
 
             if(self.isProfileActive()):
                 sheet.cell(ind + 2, 8).value = 'Active'
+                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addPerson(profile_path=profile_path)
                 self.logout()
 
@@ -311,6 +297,7 @@ class Facebook(WbAutomator):
 
             if(self.isProfileActive()):
                 sheet.cell(ind + 2, 8).value = 'Active'
+                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addLikeOnComment(post_path=post_path)
                 self.logout()
 
@@ -326,20 +313,6 @@ class Facebook(WbAutomator):
     
     def addCommentOnPostWorker(self, accounts_data, post_path):
         
-        for _, row in accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-            self.addCommentOnPost(post_path=post_path, comment='...')
-            self.logout()
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-    
-    def addLikeOnPostWorker(self, accounts_file, accounts_data, post_path):
-        
-        worker_book = openpyxl.load_workbook(accounts_file)
-        sheet =  worker_book.active
-
         for ind, row in accounts_data.iterrows():
             # start = time.perf_counter()
 
@@ -347,12 +320,38 @@ class Facebook(WbAutomator):
 
 
             if(self.isProfileActive()):
-                sheet.cell(ind + 2, 8).value = 'Active'
+                self.sheet.cell(ind + 2, 8).value = 'Active'
+                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
+                self.addCommentOnPost(post_path=post_path, comment='...')
+                self.logout()
+
+            else:
+                self.sheet.cell(ind + 2, 8).value = 'Inactive'
+                self.logout2()
+
+            # finish = time.perf_counter()
+            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+
+        self.worker_book.save(self.accounts_file)
+        self.worker_book.close()
+    
+    def addLikeOnPostWorker(self, accounts_data, post_path):
+        
+        
+        for ind, row in accounts_data.iterrows():
+            # start = time.perf_counter()
+
+            self.login(email=row['Email'], password=row['Facebook password'])
+
+
+            if(self.isProfileActive()):
+                self.sheet.cell(ind + 2, 8).value = 'Active'
+                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addLikeOnPost(post_path=post_path)
                 self.logout()
 
             else:
-                sheet.cell(ind + 2, 8).value = 'Inactive'
+                self.sheet.cell(ind + 2, 8).value = 'Inactive'
                 self.logout2()
 
             # finish = time.perf_counter()
@@ -373,8 +372,9 @@ class Facebook(WbAutomator):
 
             if(self.isProfileActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
-                self.addLikeOnPost(post_path=post_path)
-                self.addCommentOnPost2(random.choices(comments, weights, k=1)[0])
+                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
+                self.addLikeOnPost(post_path)
+                self.addCommentOnPost(post_path, random.choices(comments, weights, k=1)[0])
                 self.logout()
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
@@ -397,8 +397,8 @@ class Facebook(WbAutomator):
             if(self.isProfileActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 7).value = self.countNFreinds(profile_path=row['Profile path'])
-
                 self.logout()
+
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
                 self.logout2()
@@ -441,6 +441,7 @@ class Facebook(WbAutomator):
 
             if(self.isProfileActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
+                
                 self.logout()
 
             else:

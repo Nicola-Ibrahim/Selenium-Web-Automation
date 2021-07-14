@@ -11,7 +11,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -102,7 +102,8 @@ class WbAutomator():
         # Search for message button and send a message
         try:
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            self.driver.get(profile_path)
+            if(self.driver.current_url != profile_path):
+                self.driver.get(profile_path)
             
             message_button = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, message_button_xpath)))
             message_button.click()
@@ -115,27 +116,34 @@ class WbAutomator():
         except TimeoutException as e:
             pass
     
-    def addCommentOnPost(self, post_path, comment, comment_box_xpath):
+    def addCommentOnPost(self, post_path, comment, comment_box_xpath1, comment_box_xpath2):
         """Add comment on a post"""
+
         try:
+            
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            self.driver.get(post_path)
-
-
-            post_comment_box = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath)))
-            post_comment_box.click()
-            post_comment_box.send_keys(Keys.CONTROL, 'a', Keys.DELETE)
+            if(self.driver.current_url != post_path):
+                self.driver.get(post_path)
+            
+            post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath1)))
             post_comment_box.send_keys(comment)
-            post_comment_box.send_keys(Keys.CONTROL, 'a', Keys.DELETE)
+            post_comment_box.send_keys(Keys.ENTER)
 
-        except TimeoutException as e:
-            pass 
+        except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
+            try:
+                post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath2)))
+                post_comment_box.send_keys(comment)
+                post_comment_box.send_keys(Keys.ENTER)
+
+            except TimeoutException as e:
+                return
     
     def addLikeOnPost(self, post_path, like_button_xpath):
         """Add like to a post"""
         try:
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            self.driver.get(post_path)
+            if(self.driver.current_url != post_path):
+                self.driver.get(post_path)
 
             
             like_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, like_button_xpath)))
@@ -150,8 +158,8 @@ class WbAutomator():
             
             # //body[@class='_6s5d _71pn _-kb segoe']
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            
-            self.driver.get(page_path)
+            if(self.driver.current_url != page_path):
+                self.driver.get(page_path)
             
             follow_button = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, follow_button_xpath)))
             follow_button.click()
@@ -165,8 +173,8 @@ class WbAutomator():
             
             # //body[@class='_6s5d _71pn _-kb segoe']
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//head")))
-            
-            self.driver.get(profile_path)
+            if(self.driver.current_url != profile_path):
+                self.driver.get(profile_path)
             
             add_button = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, add_button_xpath)))
             add_button.click()
