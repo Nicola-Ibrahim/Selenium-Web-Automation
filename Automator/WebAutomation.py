@@ -116,7 +116,7 @@ class WbAutomator():
         except TimeoutException as e:
             pass
     
-    def addCommentOnPost(self, post_path, comment, comment_box_xpath1, comment_box_xpath2):
+    def addCommentOnPost(self, post_path, comment, comment_box_xpath):
         """Add comment on a post"""
 
         try:
@@ -125,18 +125,20 @@ class WbAutomator():
             if(self.driver.current_url != post_path):
                 self.driver.get(post_path)
             
-            post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath1)))
+            post_comment_box = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath)))
             post_comment_box.send_keys(comment)
             post_comment_box.send_keys(Keys.ENTER)
 
         except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
-            try:
-                post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath2)))
-                post_comment_box.send_keys(comment)
-                post_comment_box.send_keys(Keys.ENTER)
+            pass
+        
+        #     try:
+        #         post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath)))
+        #         post_comment_box.send_keys(comment)
+        #         # post_comment_box.send_keys(Keys.ENTER)
 
-            except TimeoutException as e:
-                return
+        #     except TimeoutException as e:
+        #         return
     
     def addLikeOnPost(self, post_path, like_button_xpath):
         """Add like to a post"""
@@ -171,12 +173,11 @@ class WbAutomator():
         """Add person"""
         try:
             
-            # //body[@class='_6s5d _71pn _-kb segoe']
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//head")))
             if(self.driver.current_url != profile_path):
                 self.driver.get(profile_path)
             
-            add_button = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, add_button_xpath)))
+            add_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, add_button_xpath)))
             add_button.click()
 
         except TimeoutException as e:
@@ -193,6 +194,7 @@ class WbAutomator():
     
 
 def splitting(data, num_of_splits):
+    """Splitting in hard way"""
     """Splitting data frame into multiple frames depending on the number of threads"""
 
     # Get thee dataFrame index 
@@ -210,5 +212,9 @@ def splitting(data, num_of_splits):
     return groups_items_df
 
 
+def splitting2(accounts_data, num_of_splits):
+    """Splitting in soft way"""
+    """Splitting data frame into multiple frames depending on the number of threads"""
+    return np.array_split(accounts_data, num_of_splits)
 
     
