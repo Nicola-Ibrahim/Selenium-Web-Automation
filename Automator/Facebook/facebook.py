@@ -408,60 +408,74 @@ class Facebook(WbAutomator):
         self.worker_book.save(self.accounts_file)
         self.worker_book.close()
 
-    def addPersonWorker(self, accounts_data):
+    def addMulitplePersonWorker(self, accounts_data):
         for group in accounts_data['group'].unique()[:2]:
             data = accounts_data[accounts_data['group']==group].reset_index(drop=True)
-            k = 0
-            m = -1
-            for i,j in combinations(data.index.values, r=2):
+            k = 0    # saving current login account
+            m = -1   # saving previous login account
+            
+            com = list(combinations(data.index.values, r=2))
+            # for i,j in com:
                 
-                if(i > k):
-                    self._logger.info(f"""Logout from {k}""")
-                    if(self.isProfileActive()):
-                        self.sheet.cell(i + 2, 8).value = 'Active'
+            #     if(i > k):
+            #         self._logger.info(f"""Logout from {k}""")
+            #         self.logout()
+            #         k=i
                     
-                        self.logout()
-                    else:
-                        self.sheet.cell(i + 2, 8).value = 'Inactive'
-                        self.logout2()
-                    k=i
+            #     if(k > m):
+            #         self._logger.info(f"login to person {k}")
+            #         self.login(email=data.loc[k,'Email'], password=data.loc[k,'Facebook password'])
+            #         m = k
+                
                     
-                if(k > m):
-                    self._logger.info(f"login to person {k}")
-                    self.login(email=data.loc[k,'Email'], password=data.loc[k,'Facebook password'])
-                    m = k
+            #     if(i==k):
+            #         self._logger.info(f"add person {j}")
+            #         self.addPerson(profile_path=data.loc[j,'Profile path'])
 
-                if(i==k):
-                    self._logger.info(f"add person {j}")
-                    self.addPerson(profile_path=data.loc[j,'Profile path'])
+            keys = set(map(lambda item: item[0], com))
+            dic = {k:[y for x,y in com if x==k] for k in keys}
+
+            for key in dic.keys():
+                self._logger.info(f"login to person {k}")
+                self.login(email=data.loc[k,'Email'], password=data.loc[k,'Facebook password'])
+                
+                for val in dic[key]:
+                    self._logger.info(f"add person {val}")
+                    self.addPerson(profile_path=data.loc[val,'Profile path'])
+                
+                self._logger.info(f"""Logout from {key}""")
+                self.logout()
+
 
         self.worker_book.save(self.accounts_file)
         self.worker_book.close()    
 
-    # def addPersonWorker(self, accounts_data, profile_path):
+
+
+    def addOnePersonWorker(self, accounts_data, profile_path):
         
-    #     worker_book = openpyxl.load_workbook(self.accounts_file)
-    #     sheet =  worker_book.active
+        worker_book = openpyxl.load_workbook(self.accounts_file)
+        sheet =  worker_book.active
 
-    #     for ind, row in accounts_data.iterrows():
-    #         # start = time.perf_counter()
+        for ind, row in accounts_data.iterrows():
+            # start = time.perf_counter()
 
-    #         self.login(email=row['Email'], password=row['Facebook password'])
+            self.login(email=row['Email'], password=row['Facebook password'])
 
-    #         if(self.isProfileActive()):
-    #             sheet.cell(ind + 2, 8).value = 'Active'
-    #             self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-    #             self.addPerson(profile_path=profile_path)
-    #             self.logout()
+            if(self.isProfileActive()):
+                sheet.cell(ind + 2, 8).value = 'Active'
+                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
+                self.addPerson(profile_path=profile_path)
+                self.logout()
 
-    #         else:
-    #             sheet.cell(ind + 2, 8).value = 'Inactive'
-    #             self.logout2()
+            else:
+                sheet.cell(ind + 2, 8).value = 'Inactive'
+                self.logout2()
         
-    #         # finish = time.perf_counter()
-    #         # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+            # finish = time.perf_counter()
+            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
         
-    #     self.worker_book.save(self.accounts_file)
-    #     self.worker_book.close()
+        self.worker_book.save(self.accounts_file)
+        self.worker_book.close()
 
 
