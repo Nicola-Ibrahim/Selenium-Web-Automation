@@ -1,5 +1,5 @@
 from Automator.Facebook.facebook import Facebook
-from Automator.WebAutomation import splitting, splitting2
+from Automator.WebAutomation import splitting
 import pandas as pd
 import threading
 import os
@@ -19,7 +19,7 @@ def facebookMain():
     # Number of threads to be run
     threads = []
     NUM_OF_WORKERS = 1
-    groups_items_df = splitting2(accounts_data, NUM_OF_WORKERS)
+    groups_items_df = splitting(accounts_data, NUM_OF_WORKERS)
 
     # Creating threads
     for i in range(NUM_OF_WORKERS):
@@ -27,7 +27,7 @@ def facebookMain():
         # t = threading.Thread(target=Facebook("https://www.facebook.com/").countNFreindsWorker(accounts_file_path, groups_items_df[i][54:55]))
         # t = threading.Thread(target=Facebook("https://www.facebook.com/").checkAccountsWorker(accounts_file_path, groups_items_df[i][67:68]))
         # t = threading.Thread(target=Facebook(accounts_file_path).addLike_CommentOnPostWorker(groups_items_df[i][0:3], post_path))
-        t = threading.Thread(target=Facebook(accounts_file_path).addMulitplePersonWorker(groups_items_df[i]))
+        t = threading.Thread(target=Facebook(accounts_file_path).addMulitplePersonsWorker(groups_items_df[i], method='all'))
         t.start()
         threads.append(t)
     

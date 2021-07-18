@@ -81,15 +81,19 @@ class WbAutomator():
         except TimeoutException as e:
             pass
     
-    def logout(self, menu_xpath, logout_button_xpath):
+    def logout(self, menu_xpath, logout_button_xpath1, logout_button_xpath2=None):
         """Logout from account"""
         # Search for the menu button and logout button    
         try: 
             menu_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, menu_xpath)))
             menu_button.click() 
 
-            logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, logout_button_xpath)))
+            logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, logout_button_xpath1)))
             logout_button.click()
+
+            if(logout_button_xpath2 != None):
+                logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self.logout_button_xpath2)))
+                logout_button.click()
 
             self.driver.get(self.website)
 
@@ -177,7 +181,24 @@ class WbAutomator():
             if(self.driver.current_url != profile_path):
                 self.driver.get(profile_path)
             
-            add_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, add_button_xpath)))
+            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, add_button_xpath)))
+            add_button.click()
+
+        except TimeoutException as e:
+            pass
+    
+    def acceptPerson(self, profile_path, accept_button_xpath1, accept_button_xpath2):
+        """Accept person"""
+        try:
+            
+            WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//head")))
+            if(self.driver.current_url != profile_path):
+                self.driver.get(profile_path)
+            
+            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, accept_button_xpath1)))
+            add_button.click()
+
+            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, accept_button_xpath2)))
             add_button.click()
 
         except TimeoutException as e:
@@ -193,28 +214,28 @@ class WbAutomator():
     
     
 
-def splitting(data, num_of_splits):
-    """Splitting in hard way"""
-    """Splitting data frame into multiple frames depending on the number of threads"""
+def splitting(accounts_data, num_of_splits, method='simple'):
+    """ Splitting data frame into multiple frames depending on the number of threads
+        method: if  hard -> Splitting in hard way
+                    simple -> Splitting in simple way
+    """
 
-    # Get thee dataFrame index 
-    df_indices = data.index.values
+    if(method == 'hard'):
+        # Get thee dataFrame index 
+        df_indices = accounts_data.index.values
 
-    # Calculate the number of items in each splitted group
-    number_of_elements_each_group  = int(np.ceil(len(df_indices) / num_of_splits))
+        # Calculate the number of items in each splitted group
+        number_of_elements_each_group  = int(np.ceil(len(df_indices) / num_of_splits))
 
-    # Gettign indices for each group
-    groups_indices = [group for group in np.split(df_indices, df_indices[0::number_of_elements_each_group]) if group.size != 0]
+        # Gettign indices for each group
+        groups_indices = [group for group in np.split(df_indices, df_indices[0::number_of_elements_each_group]) if group.size != 0]
 
-    # Getting df groups
-    groups_items_df = [data.iloc[indx, :] for indx in groups_indices]
+        # Getting df groups
+        groups_items_df = [accounts_data.iloc[indx, :] for indx in groups_indices]
 
-    return groups_items_df
+        return groups_items_df
 
-
-def splitting2(accounts_data, num_of_splits):
-    """Splitting in soft way"""
-    """Splitting data frame into multiple frames depending on the number of threads"""
-    return np.array_split(accounts_data, num_of_splits)
+    elif(method == 'simple'):
+        return np.array_split(accounts_data, num_of_splits)
 
     

@@ -2,6 +2,7 @@
 This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
+from operator import itemgetter
 from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, TimeoutException
 from selenium.webdriver.common import keys
 from selenium.webdriver.common.by import By
@@ -19,7 +20,7 @@ import time
 import openpyxl
 import random
 from datetime import datetime
-from itertools import combinations
+from itertools import combinations, groupby, permutations
 
 
 class Facebook(WbAutomator):
@@ -81,12 +82,13 @@ class Facebook(WbAutomator):
         # self._COMMENT_TEXTBOX_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/form/div/div/div[2]/div/div/div/div"
         # self._COMMENT_TEXTBOX_XPATH2 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/form/div/div/div[1]"
         self._COMMENT_TEXTBOX_XPATH = "//div[@aria-label='Write a comment' or @aria-label='كتابة تعليق'][@role='textbox']"
-                                                            
-                                        
         self._LIKE_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span"
-                                    
+                                                                                            
         self._PAGE_FOLLOW_BUTTON_XPATH = "//span[contains(text(),'Like') or contains(text(),'أعجبني')]"
-        self._ADD_PERSON_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[3]/div/div/div/div[2]/div/div/div/div[1]/div/div/div/div[1]/div[2]/span/span[contains(text(),'Add Friend') or contains(text(),'إضافة صديق')]"
+        
+        self._ADD_PERSON_BUTTON_XPATH = "//span[contains(text(),'Add Friend') or contains(text(),'إضافة صديق')]"
+        self._ACCEPT_PERSON_BUTTON_XPATH1 = "//span[contains(text(),'Respond') or contains(text(),'تأكيد الطلب')]"
+        self._ACCEPT_PERSON_BUTTON_XPATH2 = "//span[contains(text(),'Confirm') or contains(text(),'تأكيد')]"
 
         self._VIEW_ALL_COMMETNS_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[4]/div[1]/div[2]/span/span[matches(text(), 'View \w* more comments']"
 
@@ -147,26 +149,30 @@ class Facebook(WbAutomator):
     def login(self, email, password):
         super().login(email, password, self._LOGIN_EMAIL_TEXTBOX_XPATH, self._LOGIN_PASSOWRD_TEXTBOX_XPATH, self._LOGIN_BUTTON_XPATH)
             
-    def logout(self):
-        return super().logout(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH)
+    def logout(self, active_acc = True):
+        if(active_acc):
+            return super().logout(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH)
+        else:
+            return super().logout(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH, self._LOUTGOUT_BUTTON2_XPATH)
+        
     
-    def logout2(self):
-        """Logout from disable account"""
-        # Search for the menu button and logout button    
-        try: 
-            menu_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._MENU_BUTTON_XPATH)))
-            menu_button.click() 
+    # def logout2(self):
+    #     """Logout from disable account"""
+    #     # Search for the menu button and logout button    
+    #     try: 
+    #         menu_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._MENU_BUTTON_XPATH)))
+    #         menu_button.click() 
 
-            logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON1_XPATH)))
-            logout_button.click()
+    #         logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON1_XPATH)))
+    #         logout_button.click()
 
-            logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON2_XPATH)))
-            logout_button.click()
+    #         logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON2_XPATH)))
+    #         logout_button.click()
 
-            self.driver.get(self.website)
+    #         self.driver.get(self.website)
 
-        except (TimeoutException) as e:
-            pass
+    #     except (TimeoutException) as e:
+    #         pass
     
     def chat(self, message, profile_path):
         return super().chat( message, profile_path, self._MESSAGE_BUTTON_XPATH, self._MESSAGE_TEXTBOX_XPATH)
@@ -188,6 +194,9 @@ class Facebook(WbAutomator):
 
     def addPerson(self, profile_path):
         return super().addPerson(profile_path, self._ADD_PERSON_BUTTON_XPATH)
+    
+    def acceptPerson(self, profile_path):
+        return super().acceptPerson(profile_path, self._ACCEPT_PERSON_BUTTON_XPATH1, self._ACCEPT_PERSON_BUTTON_XPATH2)
 
 
     def countNFreinds(self, profile_path):
@@ -252,7 +261,7 @@ class Facebook(WbAutomator):
 
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
 
         self.worker_book.save(self.accounts_file)
         self.worker_book.close()
@@ -279,7 +288,8 @@ class Facebook(WbAutomator):
 
             else:
                 sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
+                
         
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
@@ -303,7 +313,7 @@ class Facebook(WbAutomator):
 
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
 
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
@@ -328,7 +338,7 @@ class Facebook(WbAutomator):
 
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
 
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
@@ -354,7 +364,7 @@ class Facebook(WbAutomator):
                 self.logout()
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
 
 
             # finish = time.perf_counter()
@@ -377,7 +387,7 @@ class Facebook(WbAutomator):
 
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
 
 
             # finish = time.perf_counter()
@@ -400,7 +410,7 @@ class Facebook(WbAutomator):
                 self.logout()
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
 
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['Full name']}" in {round(finish-start,2)} second(s)""")
@@ -408,49 +418,115 @@ class Facebook(WbAutomator):
         self.worker_book.save(self.accounts_file)
         self.worker_book.close()
 
-    def addMulitplePersonWorker(self, accounts_data):
-        for group in accounts_data['group'].unique()[:2]:
+    def addMulitplePersonsWorker(self, accounts_data, method = 'enhanced2'):
+        """
+        Add many persons from one account
+        method : as default 'enhance'
+                we can use ('simple', 'enhance', 'all')
+                simple -> simplest algorithm that doesn't combrehend all conditions
+                enhanced1 -> it is enhanced algorithm from simple algorithm
+                enhanced2 -> it is enhanced algorithm from simple algorithm
+                all -> can implement add person or response to received friendship request 
+        """
+        for group in accounts_data['group'].unique():
             data = accounts_data[accounts_data['group']==group].reset_index(drop=True)
-            k = 0    # saving current login account
-            m = -1   # saving previous login account
             
-            com = list(combinations(data.index.values, r=2))
-            # for i,j in com:
+            
+            if(method == 'simple'):
+                comb = list(combinations(data.index.values, r=2))
+                k = 0    # saving current login account
+                m = -1   # saving previous login account
                 
-            #     if(i > k):
-            #         self._logger.info(f"""Logout from {k}""")
-            #         self.logout()
-            #         k=i
+                for i,j in comb:
                     
-            #     if(k > m):
-            #         self._logger.info(f"login to person {k}")
-            #         self.login(email=data.loc[k,'Email'], password=data.loc[k,'Facebook password'])
-            #         m = k
-                
+                    if(i > k):
+                        self._logger.info(f"""Logout from {k}""")
+                        self.logout()
+                        k=i
+                        
+                    elif(k > m):
+                        self._logger.info(f"login to person {k}")
+                        self.login(email=data.loc[k,'Email'], password=data.loc[k,'Facebook password'])
+                        m = k
                     
-            #     if(i==k):
-            #         self._logger.info(f"add person {j}")
-            #         self.addPerson(profile_path=data.loc[j,'Profile path'])
+                        
+                    elif(i==k):
+                        self._logger.info(f"add person {j}")
+                        self.addPerson(profile_path=data.loc[j,'Profile path'])
 
-            keys = set(map(lambda item: item[0], com))
-            dic = {k:[y for x,y in com if x==k] for k in keys}
+            elif(method == 'enhanced1'):
+                comb = list(combinations(data.index.values, r=2))
+                keys = set(map(lambda item: item[0], comb))
+                indices = {k:[y for x,y in comb if x==k] for k in keys}
 
-            for key in dic.keys():
-                self._logger.info(f"login to person {k}")
-                self.login(email=data.loc[k,'Email'], password=data.loc[k,'Facebook password'])
-                
-                for val in dic[key]:
-                    self._logger.info(f"add person {val}")
-                    self.addPerson(profile_path=data.loc[val,'Profile path'])
-                
-                self._logger.info(f"""Logout from {key}""")
-                self.logout()
+                for key in indices.keys():
+                    self._logger.info(f"login to person {key}")
+                    self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                    
+                    if(self.isProfileActive()):
+                        self.sheet.cell(key + 2, 8).value = 'Active'
+                        self.sheet.cell(key + 2, 6).value = self.getProfileLink()
+                    
+                        for val in indices[key]:
+                            self._logger.info(f"add person {val}")
+                            self.addPerson(profile_path=data.loc[val,'Profile path'])
+                    
+                        self._logger.info(f"""Logout from {key}""")
+                        self.logout()
 
+                    else:
+                        self.sheet.cell(key + 2, 8).value = 'Inactive'
+                        self.logout(active_acc=False)
+
+            elif(method == 'enhanced2'):
+                comb = list(combinations(data.index.values, r=2))
+                indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
+
+                for key in indices.keys():
+                    self._logger.info(f"login to person {key}")
+                    self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                    
+                    if(self.isProfileActive()):
+                        self.sheet.cell(key + 2, 8).value = 'Active'
+                        self.sheet.cell(key + 2, 6).value = self.getProfileLink()
+                    
+                        for val in indices[key]:
+                            self._logger.info(f"add person {val}")
+                            self.addPerson(profile_path=data.loc[val,'Profile path'])
+                    
+                        self._logger.info(f"""Logout from {key}""")
+                        self.logout()
+
+                    else:
+                        self.sheet.cell(key + 2, 8).value = 'Inactive'
+                        self.logout(active_acc=False)
+
+            elif(method == 'all'):
+                perm = list(permutations(data.index.values, r=2))
+                indices = {key: [val for _, val in values] for key, values in groupby(perm, itemgetter(0))}
+
+                for key in indices.keys():
+                    self._logger.info(f"login to person {key}")
+                    self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                    
+                    if(self.isProfileActive()):
+                        self.sheet.cell(key + 2, 8).value = 'Active'
+                        self.sheet.cell(key + 2, 6).value = self.getProfileLink()
+                    
+                        for val in indices[key]:
+                            self._logger.info(f"add person {val}")
+                            self.addPerson(profile_path=data.loc[val,'Profile path'])
+                            self.acceptPerson(profile_path=data.loc[val,'Profile path'])
+                    
+                        self._logger.info(f"""Logout from {key}""")
+                        self.logout()
+
+                    else:
+                        self.sheet.cell(key + 2, 8).value = 'Inactive'
+                        self.logout(active_acc=False)
 
         self.worker_book.save(self.accounts_file)
         self.worker_book.close()    
-
-
 
     def addOnePersonWorker(self, accounts_data, profile_path):
         
@@ -470,7 +546,7 @@ class Facebook(WbAutomator):
 
             else:
                 sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout2()
+                self.logout(active_acc=False)
         
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
@@ -478,4 +554,32 @@ class Facebook(WbAutomator):
         self.worker_book.save(self.accounts_file)
         self.worker_book.close()
 
+    def acceptMulitplePersonsWorker(self, accounts_data):
 
+        for group in accounts_data['group'].unique():
+            data = accounts_data[accounts_data['group']==group].reset_index(drop=True)
+            comb = list(combinations(data.index.values[::-1], r=2))
+
+            indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
+
+            for key in indices.keys():
+                self._logger.info(f"login to person {key}")
+                self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                
+                if(self.isProfileActive()):
+                    self.sheet.cell(key + 2, 8).value = 'Active'
+                    self.sheet.cell(key + 2, 6).value = self.getProfileLink()
+                
+                    for val in indices[key]:
+                        self._logger.info(f"add person {val}")
+                        self.acceptPerson(profile_path=data.loc[val,'Profile path'])
+                
+                    self._logger.info(f"""Logout from {key}""")
+                    self.logout()
+
+                else:
+                    self.sheet.cell(key + 2, 8).value = 'Inactive'
+                    self.logout(active_acc=False)
+
+        self.worker_book.save(self.accounts_file)
+        self.worker_book.close()  
