@@ -156,24 +156,6 @@ class Facebook(WbAutomator):
             return super().logout(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH, self._LOUTGOUT_BUTTON2_XPATH)
         
     
-    # def logout2(self):
-    #     """Logout from disable account"""
-    #     # Search for the menu button and logout button    
-    #     try: 
-    #         menu_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._MENU_BUTTON_XPATH)))
-    #         menu_button.click() 
-
-    #         logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON1_XPATH)))
-    #         logout_button.click()
-
-    #         logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON2_XPATH)))
-    #         logout_button.click()
-
-    #         self.driver.get(self.website)
-
-    #     except (TimeoutException) as e:
-    #         pass
-    
     def chat(self, message, profile_path):
         return super().chat( message, profile_path, self._MESSAGE_BUTTON_XPATH, self._MESSAGE_TEXTBOX_XPATH)
         
