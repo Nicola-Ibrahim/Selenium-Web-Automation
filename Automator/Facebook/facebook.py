@@ -537,6 +537,7 @@ class Facebook(WbAutomator):
         self.worker_book.close()
 
     def acceptMulitplePersonsWorker(self, accounts_data):
+        
 
         for group in accounts_data['group'].unique():
             data = accounts_data[accounts_data['group']==group].reset_index(drop=True)
