@@ -21,7 +21,7 @@ import openpyxl
 import random
 from datetime import datetime
 from itertools import combinations, groupby, permutations
-
+import emoji
 
 class Facebook(WbAutomator):
     """Chile class automator"""
@@ -82,9 +82,14 @@ class Facebook(WbAutomator):
         # self._COMMENT_TEXTBOX_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/form/div/div/div[2]/div/div/div/div"
         # self._COMMENT_TEXTBOX_XPATH2 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/form/div/div/div[1]"
         self._COMMENT_TEXTBOX_XPATH = "//div[@aria-label='Write a comment' or @aria-label='كتابة تعليق'][@role='textbox']"
-        self._LIKE_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span"
-                                                                                            
+        self._LIKE_BUTTON_XPATH = "//div[@aria-label='Like' or @aria-label='أعجبني'][@role='button']"
+        
+        # self._LIKE_BUTTON_XPATH1 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span"
+        # self._LIKE_BUTTON_XPATH2 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span/span"
+        
+        
         self._PAGE_FOLLOW_BUTTON_XPATH = "//span[contains(text(),'Like') or contains(text(),'أعجبني')]"
+
         
         self._ADD_PERSON_BUTTON_XPATH = "//span[contains(text(),'Add Friend') or contains(text(),'إضافة صديق')]"
         self._ACCEPT_PERSON_BUTTON_XPATH1 = "//span[contains(text(),'Respond') or contains(text(),'تأكيد الطلب')]"
@@ -104,6 +109,7 @@ class Facebook(WbAutomator):
         self.accounts_file = accounts_file
         self.worker_book = openpyxl.load_workbook(self.accounts_file)
         self.sheet =  self.worker_book.active
+
   
       
     def signUp(self, first_name, last_name, email, password, date_of_birth, gender):
@@ -330,9 +336,54 @@ class Facebook(WbAutomator):
 
     def addLike_CommentOnPostWorker(self, accounts_data, post_path):
         
-        comments = ['.','..','....','السعر','سعر','السعر لو سمحت','عنوان','مقاسات']
-        weights = [0.3, 0.5, 0.3, 0.1, 0.1, 0.1, 0.1, 0.1]
-
+        # comments = ['.','..','....','السعر','سعر','السعر لو سمحت','عنوان','مقاسات']
+        # weights = [0.3, 0.5, 0.3, 0.1, 0.1, 0.1, 0.1, 0.1]
+       
+        commments = [
+            'واااوheart:',
+            ':heart::heart::heart:',
+            ':heart::heart:',
+            ':heart::heart:',
+            ':heart::heart::heart:',
+            'واااو :heart::heart:',
+            'يسلم ايديك',
+            'شغل روعة',
+            'فخامة',
+            'ممتاااااز',
+            'برافوو' ,
+            'عظيم',
+            'الله يقويك :heart::heart:',
+            'شغل ممتاز ولله',
+            'من نجاح لنجاح دكتورنا',
+            'ماشالله :heart::heart:',
+            'اي هك شغل يابلا :heart::heart::heart::heart:',
+            'بالتوفيق يارب',
+            'احلى دكتور',
+            'موفق دكتورنا',
+            'مبدع',
+            'دكتورنا:heart::heart::heart::heart:',
+            'يسلم هالايدين',
+            'موقق عطول :heart::heart:',
+            'شغل روعة :heart::heart:',
+            'ممتاز',
+            'شي فخم',
+            'نتائج رائعة',
+            'بالتوفيييق دكتورنا الغالي',
+            'بالتوفيق دكتورنا',
+            'بالتوفييق دكتورنا',
+            ':heart::heart::heart:',
+            ':heart:',
+            'دكتورنا الراقي',
+            'مافي منك دكتور',
+            'دكتورنا المذوق :heart:',
+            'شغلك بيحكي عنك:heart:',
+            'ماشالله ع هالشغل الحلو',
+            'شغلك ممتاز ع طول :heart::heart:',
+            'متألق:heart::heart:',
+            ':heart::heart::heart:',
+            'برافو عنجد:heart::heart:',
+            'ممتاز',
+        ]
         for ind, row in accounts_data.iterrows():
             # start = time.perf_counter()
 
@@ -342,7 +393,9 @@ class Facebook(WbAutomator):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addLikeOnPost(post_path)
-                self.addCommentOnPost(post_path, random.choices(comments, weights, k=1)[0])
+                # self.addCommentOnPost(post_path, random.choices(comments, weights, k=1)[0])
+                self.addCommentOnPost(post_path, emoji.emojize(random.choice(commments), use_aliases=True))
+                
                 self.logout()
             else:
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
