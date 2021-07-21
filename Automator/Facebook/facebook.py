@@ -31,8 +31,8 @@ class Facebook(WbAutomator):
             self.func = func
 
             # # Edit accounts file
-            # self.accounts_file = accounts_file
-            # self.worker_book = openpyxl.load_workbook(self.accounts_file)
+            # self.accounts_file_path = accounts_file_path
+            # self.worker_book = openpyxl.load_workbook(self.accounts_file_path)
             # self.sheet =  self.worker_book.active
         
         def __call__(self, *args, **kwargs):
@@ -48,11 +48,11 @@ class Facebook(WbAutomator):
                 else:
                     face.logout2()
 
-            # self.worker_book.save(self.accounts_file)
+            # self.worker_book.save(self.accounts_file_path)
             # self.worker_book.close()
 
 
-    def __init__(self, accounts_file) :
+    def __init__(self, accounts_file_path, accounts_data) :
         super().__init__(website="https://www.facebook.com/", logfile_path="./logs/Facebook accounts logout info.log")
 
         self._NEW_ACCOUNT_BUTTON_XPTH = "//a[@role='button' and @class= '_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy']"
@@ -105,9 +105,11 @@ class Facebook(WbAutomator):
         self._LOCKED_PROFILE_TEXT_XPATH = "/html/body/div[1]/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div[1]/span"
 
 
+        self.accounts_file_path = accounts_file_path
+        self.accounts_data = accounts_data
+
         # Edit accounts file
-        self.accounts_file = accounts_file
-        self.worker_book = openpyxl.load_workbook(self.accounts_file)
+        self.worker_book = openpyxl.load_workbook(self.accounts_file_path)
         self.sheet =  self.worker_book.active
 
   
@@ -234,9 +236,9 @@ class Facebook(WbAutomator):
     ############################################################
     ### Some workers to be using throught threads techniques ###
     ############################################################
-    def addPageFollowingWorker(self, accounts_data, page_path):
+    def addPageFollowingWorker(self, page_path):
         
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
             
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -251,19 +253,19 @@ class Facebook(WbAutomator):
                 self.sheet.cell(ind + 2, 8).value = 'Inactive'
                 self.logout(active_acc=False)
 
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
             
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
-    def addLikeOnCommentWorker(self, accounts_data, post_path):
+    def addLikeOnCommentWorker(self, post_path):
         
 
-        worker_book = openpyxl.load_workbook(self.accounts_file)
+        worker_book = openpyxl.load_workbook(self.accounts_file_path)
         sheet =  worker_book.active
 
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -282,12 +284,12 @@ class Facebook(WbAutomator):
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
      
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
     
-    def addCommentOnPostWorker(self, accounts_data, post_path):
+    def addCommentOnPostWorker(self, post_path):
         
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -306,13 +308,13 @@ class Facebook(WbAutomator):
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
     
-    def addLikeOnPostWorker(self, accounts_data, post_path):
+    def addLikeOnPostWorker(self, post_path):
         
         
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -331,10 +333,10 @@ class Facebook(WbAutomator):
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
 
-    def addLike_CommentOnPostWorker(self, accounts_data, post_path):
+    def addLike_CommentOnPostWorker(self,post_path):
         
         # comments = ['.','..','....','السعر','سعر','السعر لو سمحت','عنوان','مقاسات']
         # weights = [0.3, 0.5, 0.3, 0.1, 0.1, 0.1, 0.1, 0.1]
@@ -384,7 +386,7 @@ class Facebook(WbAutomator):
             'برافو عنجد:heart::heart:',
             'ممتاز',
         ]
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -405,12 +407,12 @@ class Facebook(WbAutomator):
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
         
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
 
-    def countNFreindsWorker(self,accounts_data):
+    def countNFreindsWorker(self):
         
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -428,12 +430,12 @@ class Facebook(WbAutomator):
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
         
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
 
-    def getProfileLinkWorker(self, accounts_data):
+    def getProfileLinkWorker(self):
 
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -450,10 +452,10 @@ class Facebook(WbAutomator):
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['Full name']}" in {round(finish-start,2)} second(s)""")
 
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
 
-    def addMulitplePersonsWorker(self, accounts_data, method = 'enhanced2'):
+    def addMulitplePersonsWorker(self, method = 'enhanced2'):
         """
         Add many persons from one account
         method : as default 'enhance'
@@ -463,8 +465,8 @@ class Facebook(WbAutomator):
                 enhanced2 -> it is enhanced algorithm from simple algorithm
                 all -> can implement add person or response to received friendship request 
         """
-        for group in accounts_data['group'].unique():
-            data = accounts_data[accounts_data['group']==group].reset_index(drop=True)
+        for group in self.accounts_data['group'].unique():
+            data = self.accounts_data[self.accounts_data['group']==group].reset_index(drop=True)
             
             
             if(method == 'simple'):
@@ -560,15 +562,15 @@ class Facebook(WbAutomator):
                         self.sheet.cell(key + 2, 8).value = 'Inactive'
                         self.logout(active_acc=False)
 
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()    
 
-    def addOnePersonWorker(self, accounts_data, profile_path):
+    def addOnePersonWorker(self, profile_path):
         
-        worker_book = openpyxl.load_workbook(self.accounts_file)
+        worker_book = openpyxl.load_workbook(self.accounts_file_path)
         sheet =  worker_book.active
 
-        for ind, row in accounts_data.iterrows():
+        for ind, row in self.accounts_data.iterrows():
             # start = time.perf_counter()
 
             self.login(email=row['Email'], password=row['Facebook password'])
@@ -586,14 +588,14 @@ class Facebook(WbAutomator):
             # finish = time.perf_counter()
             # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
         
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()
 
-    def acceptMulitplePersonsWorker(self, accounts_data):
+    def acceptMulitplePersonsWorker(self):
         
 
-        for group in accounts_data['group'].unique():
-            data = accounts_data[accounts_data['group']==group].reset_index(drop=True)
+        for group in self.accounts_data['group'].unique():
+            data = self.accounts_data[self.accounts_data['group']==group].reset_index(drop=True)
             comb = list(combinations(data.index.values[::-1], r=2))
 
             indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
@@ -617,5 +619,5 @@ class Facebook(WbAutomator):
                     self.sheet.cell(key + 2, 8).value = 'Inactive'
                     self.logout(active_acc=False)
 
-        self.worker_book.save(self.accounts_file)
+        self.worker_book.save(self.accounts_file_path)
         self.worker_book.close()  

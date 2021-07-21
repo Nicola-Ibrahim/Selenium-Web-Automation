@@ -23,10 +23,7 @@ def facebookMain():
     # Creating threads
     for i in range(NUM_OF_WORKERS):
 
-        # t = threading.Thread(target=Facebook("https://www.facebook.com/").countNFreindsWorker(accounts_file_path, groups_items_df[i][54:55]))
-        # t = threading.Thread(target=Facebook("https://www.facebook.com/").checkAccountsWorker(accounts_file_path, groups_items_df[i][67:68]))
-        t = threading.Thread(target=Facebook(accounts_file_path).addLike_CommentOnPostWorker(groups_items_df[i][10:20], post_path))
-        # t = threading.Thread(target=Facebook(accounts_file_path).addMulitplePersonsWorker(groups_items_df[i], method='all'))
+        t = threading.Thread(target=Facebook(accounts_file_path, groups_items_df[i]).addLike_CommentOnPostWorker(post_path))
         t.start()
         threads.append(t)
     

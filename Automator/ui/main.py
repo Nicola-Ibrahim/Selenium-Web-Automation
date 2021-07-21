@@ -6,11 +6,7 @@ import os
 import sys
 
 def uiMain():
-    
-    # Read accounts file
-    accounts_file_path = "Automator/Facebook/Facebook Accounts.xlsx"
-    accounts_data = pd.read_excel(accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
-    
+
     # Adjust window to screen
     os.environ["QtCore.QT_AUTO_SCREEN_SCALE_FACTOR"] = '1'
     # Enable High DPI display with PyQt5
@@ -24,7 +20,7 @@ def uiMain():
     # Create the application
     app = QtWidgets.QApplication(sys.argv)
 
-    main_win = AutomatorMainWindow(accounts_file_path, accounts_data)
+    main_win = AutomatorMainWindow()
     main_win.show()
 
 

@@ -136,14 +136,6 @@ class WbAutomator():
         except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
             pass
         
-        #     try:
-        #         post_comment_box = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath)))
-        #         post_comment_box.send_keys(comment)
-        #         # post_comment_box.send_keys(Keys.ENTER)
-
-        #     except TimeoutException as e:
-        #         return
-    
     def addLikeOnPost(self, post_path, like_button_xpath):
         """Add like to a post"""
         try:
@@ -152,17 +144,17 @@ class WbAutomator():
                 self.driver.get(post_path)
 
             
-            like_button = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, like_button_xpath)))
+            like_button = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, like_button_xpath)))
             like_button.click()
         
         except TimeoutException as e:
             pass
+            
 
     def addPageFollowing(self, page_path, follow_button_xpath):
         """Add following for a page"""
         try:
             
-            # //body[@class='_6s5d _71pn _-kb segoe']
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
             if(self.driver.current_url != page_path):
                 self.driver.get(page_path)
