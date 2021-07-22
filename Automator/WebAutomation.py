@@ -126,6 +126,7 @@ class WbAutomator():
         try:
             
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
+            
             if(self.driver.current_url != post_path):
                 self.driver.get(post_path)
             
@@ -136,7 +137,7 @@ class WbAutomator():
         except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
             pass
         
-    def addLikeOnPost(self, post_path, like_button_xpath):
+    def addLikeOnPost(self, post_path, like_button_xpath1, like_button_xpath2):
         """Add like to a post"""
         try:
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
@@ -144,11 +145,15 @@ class WbAutomator():
                 self.driver.get(post_path)
 
             
-            like_button = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, like_button_xpath)))
+            like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath1)))
             like_button.click()
         
         except TimeoutException as e:
-            pass
+            try:
+                like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath2)))
+                like_button.click()
+            except:
+                pass
             
 
     def addPageFollowing(self, page_path, follow_button_xpath):
@@ -159,7 +164,7 @@ class WbAutomator():
             if(self.driver.current_url != page_path):
                 self.driver.get(page_path)
             
-            follow_button = WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, follow_button_xpath)))
+            follow_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, follow_button_xpath)))
             follow_button.click()
 
         except TimeoutException as e:

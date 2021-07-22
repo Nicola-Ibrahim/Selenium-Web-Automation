@@ -43,8 +43,11 @@ class LikesOnPostUIWorker(QtCore.QThread):
             
         except (NoSuchWindowException or WebDriverException) as e:
             return
-        else:
-            self.facebook.driver.close()
+        finally:
+            try:
+                self.facebook.driver.close()
+            except WebDriverException as e:
+                pass
             self.finished.emit()
 
 class PageFollowingUIWorker(QtCore.QThread):
@@ -84,19 +87,22 @@ class PageFollowingUIWorker(QtCore.QThread):
             
         except (NoSuchWindowException or WebDriverException) as e:
             return
-        else:
-            self.facebook.driver.close()
+        finally:
+            try:
+                self.facebook.driver.close()
+            except WebDriverException as e:
+                pass
             self.finished.emit()
 
 class CommentsOnPostWorker(QtCore.QThread):
     finished = QtCore.pyqtSignal()
 
-    def __init__(self, accounts_file_path, accounts_data, url: str, comments, parent: typing.Optional['QtCore.QObject']) :
+    def __init__(self, accounts_file_path, accounts_data, comments_data, comments_type, url: str, parent: typing.Optional['QtCore.QObject']) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(accounts_file_path, accounts_data)
         self.url = url
-        self.comments = comments
+        self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
 
     def run(self):
         try:
@@ -109,7 +115,7 @@ class CommentsOnPostWorker(QtCore.QThread):
                 if(self.facebook.isProfileActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments)))
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments_data), use_aliases=True))
                     self.facebook.logout()
 
                 else:
@@ -124,8 +130,11 @@ class CommentsOnPostWorker(QtCore.QThread):
             
         except (NoSuchWindowException or WebDriverException) as e:
             return
-        else:
-            self.facebook.driver.close()
+        finally:
+            try:
+                self.facebook.driver.close()
+            except WebDriverException as e:
+                pass
             self.finished.emit()
             
 class Likes_CommentsOnPostWorker(QtCore.QThread):
@@ -133,12 +142,12 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
    
     finished = QtCore.pyqtSignal()
 
-    def __init__(self, accounts_file_path, accounts_data, url: str, comments, parent: typing.Optional['QtCore.QObject']) :
+    def __init__(self, accounts_file_path, accounts_data, comments_data, comments_type, url: str, parent: typing.Optional['QtCore.QObject']) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(accounts_file_path, accounts_data)
         self.url = url
-        self.comments = comments
+        self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
 
     def run(self):
         try:
@@ -152,7 +161,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments)))
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments_data), use_aliases=True))
                     self.facebook.logout()
 
                 else:
@@ -167,8 +176,11 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
             
         except (NoSuchWindowException or WebDriverException) as e:
             return
-        else:
-            self.facebook.driver.close()
+        finally:
+            try:
+                self.facebook.driver.close()
+            except WebDriverException as e:
+                pass
             self.finished.emit()
             
 
