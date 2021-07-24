@@ -19,42 +19,47 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.comments_file_path = None
         self.comments_data = None
         
+        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+
         self.setupUi(self)
         self.uiChanges()
         self.handleButtons()
         self.regexValidation()
         self.initialValues()
     
-    # def closeEvent(self, event):
+    def closeEvent(self, event):
     
-    #     """UI close envet handler"""
-    #     reply = QtWidgets.QMessageBox.question(
-    #         self,
-    #         "إغلاق",
-    #         " تأكيد  ؟",
-    #         QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-    #     )
-    #     if reply == QtWidgets.QMessageBox.Yes:
-    #         event.accept()
-    #     else:
-    #         event.ignore()
+        """UI close envet handler"""
+        self.settings.setValue('facebook_file_path', self.accounts_file_path)
+        self.settings.setValue('comments_file_path', self.comments_file_path)
+
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "إغلاق",
+            " تأكيد  ؟",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+        )
+        if reply == QtWidgets.QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
     def uiChanges(self):
         """UI changes after run the program"""
-        self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame'))
+        self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame'))
         
+        self.settings.setValue('start_count', 1)
         # Centrize the dialog
         r = self.geometry()
         r.moveCenter(QtWidgets.QApplication.desktop().availableGeometry().center()) 
         self.setGeometry(r)
         
-
     def initialValues(self):
         """Initialize values for the text boxes"""
-        self.start_acc_range_txt1.setText('0')
-        self.start_acc_range_txt2.setText('0')
-        self.start_acc_range_txt3.setText('0')
-        self.start_acc_range_txt4.setText('0')
+        self.start_acc_range_txt1.setText(str(self.settings.value('start_count')))
+        self.start_acc_range_txt2.setText(str(self.settings.value('start_count')))
+        self.start_acc_range_txt3.setText(str(self.settings.value('start_count')))
+        self.start_acc_range_txt4.setText(str(self.settings.value('start_count')))
 
         if(self.accounts_data is not None):
             self.end_acc_range_txt1.setText(str(self.accounts_data.shape[0]))
@@ -85,6 +90,13 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.load_commetns_file_btn1.clicked.connect(self.readCommentsDataFile)
         self.load_commetns_file_btn3.clicked.connect(self.readCommentsDataFile)
+        
+        
+        self.facebook_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame')))
+        self.instagram_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'instagram_frame')))
+        
+        
+        self.return_btn1.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
 
     def regexValidation(self):
         """Apply regular expression to some UI elements"""
@@ -109,10 +121,6 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.post_url_txt3.setValidator(validator)
         # self.page_url_txt4.setValidator(validator)
 
-
-    ############
-    # comments #
-    ############
     def addCommentsOnPostUIworker(self):
         """Add comments on a post"""
         url = self.post_url_txt1.text()
@@ -139,13 +147,13 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         
         elif(start_num == ''):
-            self.start_acc_range_txt2.setFocus()
-            QtWidgets.QToolTip.showText(self.start_acc_range_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter start number")
+            self.start_acc_range_txt1.setFocus()
+            QtWidgets.QToolTip.showText(self.start_acc_range_txt1.mapToGlobal(QtCore.QPoint(0,10)),"Enter start number")
             return
         
         elif(end_num == ''):
-            self.end_acc_range_txt2.setFocus()
-            QtWidgets.QToolTip.showText(self.end_acc_range_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter end number")
+            self.end_acc_range_txt1.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt1.mapToGlobal(QtCore.QPoint(0,10)),"Enter end number")
             return
         
         elif(num_of_workers == ''):
@@ -154,12 +162,18 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
         
         elif(comments_type == ''):
-            comments_type_comboBox1.currentText.setFocus()
-            QtWidgets.QToolTip.showText(comments_type_comboBox1.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            self.comments_type_comboBox1.currentText.setFocus()
+            QtWidgets.QToolTip.showText(self.comments_type_comboBox1.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter comments type")
             return
 
-        start_num = int(start_num)
+        start_num = int(start_num) - 1
         end_num = int(end_num)
+
+        if(end_num <= start_num):
+            self.end_acc_range_txt1.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt1.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
+            return
+
         num_of_workers = int(num_of_workers)
 
 
@@ -176,14 +190,12 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
             worker = CommentsOnPostWorker(self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
             worker.finished.connect(lambda : self.run_btn2.setEnabled(True))
+            worker.finished.connect(self.initialValues)
+            worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
             
             worker.start()
-
-    
-    #########
-    # Likes #
-    #########
+  
     def addLikesOnPostUIRun(self):
         """Add likes on a post"""
         url = self.post_url_txt2.text()
@@ -220,6 +232,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         start_num = int(start_num)
         end_num = int(end_num)
+        if(end_num <= start_num):
+            self.end_acc_range_txt2.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt2.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
+            return
+
         num_of_workers = int(num_of_workers)
 
 
@@ -235,13 +252,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
             worker = LikesOnPostUIWorker(self.accounts_file_path, groups_items_df[i], url, self)
             worker.finished.connect(lambda : self.run_btn2.setEnabled(True))
+            worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
             
             worker.start()
 
-    ######################
-    # Likes and Comments #
-    ######################
     def addLikes_CommentsOnPostUIRun(self):
         """Add likes and comments on a post"""
         url = self.post_url_txt3.text()
@@ -283,12 +298,16 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
 
         elif(comments_type == ''):
-            comments_type_comboBox2.currentText.setFocus()
-            QtWidgets.QToolTip.showText(comments_type_comboBox2.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            self.comments_type_comboBox2.currentText.setFocus()
+            QtWidgets.QToolTip.showText(self.comments_type_comboBox2.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
         start_num = int(start_num)
         end_num = int(end_num)
+        if(end_num <= start_num):
+            self.end_acc_range_txt3.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt3.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
+            return
         num_of_workers = int(num_of_workers)
 
 
@@ -305,14 +324,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
             worker = Likes_CommentsOnPostWorker(self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
             worker.finished.connect(lambda : self.run_btn3.setEnabled(True))
+            worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
             
             worker.start()
-
-    
-    ###################
-    # Page followings #
-    ###################         
+  
     def addPageFollowingUIRun(self):
         """Add likes on a post"""
         url = self.page_url_txt4.text()
@@ -349,6 +365,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         start_num = int(start_num)
         end_num = int(end_num)
+        if(end_num <= start_num):
+            self.end_acc_range_txt4.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt4.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
+            return
+
         num_of_workers = int(num_of_workers)
 
 
@@ -368,13 +389,12 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
             worker.start()
 
-
     def readAccountDataFile(self):
         """Read accounts data file"""
 
         # get the file name which is saved
         self.accounts_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
-                    directory = os.path.join(os.getcwd(),'Automator/Facebook'),filter="XLSX files (*.xlsx)")
+                    directory = self.settings.value('facebook_file_path'),filter="XLSX files (*.xlsx)")
                 
         # check if the file extension is an Excel file
         reg = re.compile(r"\.xlsx$")
@@ -397,7 +417,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get the file name which is saved
         self.comments_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
-                    directory = os.path.join(os.getcwd(),'Automator/Facebook'),filter="XLSX files (*.xlsx)")
+                    directory = self.settings.value('comments_file_path'),filter="XLSX files (*.xlsx)")
                 
         # check if the file extension is an Excel file
         reg = re.compile(r"\.xlsx$")

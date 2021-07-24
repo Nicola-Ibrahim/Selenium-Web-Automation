@@ -3,7 +3,6 @@ This the parent class that can be inherited to automate any website.
 If some forms as (login or logout ets...) have different shape then the method that responsiable about 
 that should be overriden.  
 """
-import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -17,6 +16,7 @@ from selenium.webdriver.remote.webelement import WebElement
 
 
 import numpy as np
+import logging
 
 
 class WbAutomator():
@@ -26,7 +26,7 @@ class WbAutomator():
         """Initial a Chrome driver"""
         
         # create new logger for testing 
-        self._logger = self.initLogger(logfile_path)
+        # self._logger = self.initLogger(logfile_path)
 
         # capa = DesiredCapabilities.CHROME
         # capa["pageLoadStrategy"] = "none"

@@ -2,16 +2,12 @@
 This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
-from operator import itemgetter
-from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, TimeoutException
-from selenium.webdriver.common import keys
+
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
-
 from Automator.WebAutomation import WbAutomator
 
 import re
@@ -21,6 +17,7 @@ import openpyxl
 import random
 from datetime import datetime
 from itertools import combinations, groupby, permutations
+from operator import itemgetter
 import emoji
 
 class Facebook(WbAutomator):
@@ -113,8 +110,6 @@ class Facebook(WbAutomator):
         self.worker_book = openpyxl.load_workbook(self.accounts_file_path)
         self.sheet =  self.worker_book.active
 
-  
-      
     def signUp(self, first_name, last_name, email, password, date_of_birth, gender):
         """Sign up for new facebook account"""
         try:

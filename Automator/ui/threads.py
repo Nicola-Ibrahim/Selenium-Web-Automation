@@ -1,10 +1,10 @@
+from selenium.common.exceptions import NoSuchWindowException, WebDriverException
+from PyQt5 import QtCore
 from Automator.Facebook.facebook import Facebook
-import random
 
+import random
 import emoji
 import typing
-from PyQt5 import QtCore
-from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 
 class LikesOnPostUIWorker(QtCore.QThread):
     
@@ -15,6 +15,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
 
         self.facebook = Facebook(accounts_file_path, accounts_data)
         self.url = url
+        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
     def run(self):
         try:
@@ -37,6 +38,9 @@ class LikesOnPostUIWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+                self.settings.setValue('start_count', ind+1)
+            
+            self.settings.setValue('start_count', 1)
 
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
@@ -59,6 +63,7 @@ class PageFollowingUIWorker(QtCore.QThread):
 
         self.facebook = Facebook(accounts_file_path, accounts_data)
         self.url = url
+        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
     def run(self):
         try:
@@ -82,6 +87,10 @@ class PageFollowingUIWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
+                self.settings.setValue('start_count', ind+1)
+            
+            self.settings.setValue('start_count', 1)
+
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
             
@@ -103,6 +112,7 @@ class CommentsOnPostWorker(QtCore.QThread):
         self.facebook = Facebook(accounts_file_path, accounts_data)
         self.url = url
         self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
+        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
     def run(self):
         try:
@@ -124,6 +134,9 @@ class CommentsOnPostWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+                self.settings.setValue('start_count', ind+1)
+            
+            self.settings.setValue('start_count', 1)
 
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
@@ -148,6 +161,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
         self.facebook = Facebook(accounts_file_path, accounts_data)
         self.url = url
         self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
+        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
     def run(self):
         try:
@@ -170,6 +184,9 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+                self.settings.setValue('start_count', ind+1)
+            
+            self.settings.setValue('start_count', 1)
 
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
