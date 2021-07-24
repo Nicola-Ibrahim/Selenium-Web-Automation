@@ -1,14 +1,12 @@
 
-import os
 import re
-from numpy.lib.type_check import common_type
 
 import pandas as pd
 from Automator.ui.threads import CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
-from Automator.WebAutomation import splitting
-from Automator.Facebook.facebook import Facebook
 from Automator.ui.MainUI.ui_Facebook_UI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+from Automator.WebAutomation import splitting
 
 class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -18,7 +16,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.accounts_data = None
         self.comments_file_path = None
         self.comments_data = None
-        
+        self.driver_type = None
+
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
         self.setupUi(self)
@@ -95,6 +94,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.facebook_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame')))
         self.instagram_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'instagram_frame')))
         
+        self.facebook_btn.clicked.connect(self.selectDriverType)
+        self.instagram_btn.clicked.connect(self.selectDriverType)
+        
         
         self.return_btn1.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
 
@@ -116,11 +118,19 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Set validation for checking url values
         # validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('(https://www.)*(\w+)(.[a-zA-Z]{1,3})(\/[ء-يa-zA-Z0-9\.-=?_&#]*)*'))
-        # self.post_url_txt1.setValidator(validator)
-        # self.post_url_txt2.setValidator(validator)
-        # self.post_url_txt3.setValidator(validator)
-        # self.page_url_txt4.setValidator(validator)
+        validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('(https://www.facebook.com)(.)*'))
+        self.post_url_txt1.setValidator(validator)
+        self.post_url_txt2.setValidator(validator)
+        self.post_url_txt3.setValidator(validator)
+        self.page_url_txt4.setValidator(validator)
 
+
+    def selectDriverType(self):
+        self.driver_type = self.driver_type_comboBox.currentText()
+
+    ####################
+    # Facebook Workers #
+    ####################
     def addCommentsOnPostUIworker(self):
         """Add comments on a post"""
         url = self.post_url_txt1.text()
@@ -188,9 +198,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             # Creating instance from the Facebook classs
             
-            worker = CommentsOnPostWorker(self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
+            worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
             worker.finished.connect(lambda : self.run_btn2.setEnabled(True))
-            worker.finished.connect(self.initialValues)
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
             
@@ -250,10 +259,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = LikesOnPostUIWorker(self.accounts_file_path, groups_items_df[i], url, self)
+            worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], url, self)
             worker.finished.connect(lambda : self.run_btn2.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
+            worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at the account:: {ind} : {name}"))
             
             worker.start()
 
@@ -322,7 +332,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             # Creating instance from the Facebook classs
             
-            worker = Likes_CommentsOnPostWorker(self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
+            worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
             worker.finished.connect(lambda : self.run_btn3.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
@@ -383,12 +393,16 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
          # Creating threads
         for i in range(num_of_workers):
             
-            worker = PageFollowingUIWorker(self.accounts_file_path, groups_items_df[i], url, self)
+            worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], url, self)
             worker.finished.connect(lambda : self.run_btn4.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
             
             worker.start()
 
+
+    ###############
+    # Read files #
+    ##############
     def readAccountDataFile(self):
         """Read accounts data file"""
 
@@ -398,20 +412,35 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 
         # check if the file extension is an Excel file
         reg = re.compile(r"\.xlsx$")
-
+        
         if (reg.search(self.accounts_file_path) is not None):
-            self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
-            
-            # Reinialize values in text boxes
-            self.initialValues()
+            try:
+                self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
+                
+                # Reinialize values in text boxes
+                self.initialValues()
 
-            # Set file path in text boxes
-            text = self.accounts_file_path.split('/')[-1]
-            self.accounts_file_txt1.setText(text)
-            self.accounts_file_txt2.setText(text)
-            self.accounts_file_txt3.setText(text)
-            self.accounts_file_txt4.setText(text)
 
+                # Set file path in text boxes and
+                # change accounts file path text boxes properties
+                text = self.accounts_file_path.split('/')[-1]
+                for txt_box in [self.accounts_file_txt1, self.accounts_file_txt2, self.accounts_file_txt3, self.accounts_file_txt4]:
+                    txt_box.setText(text)
+                    txt_box.setStyleSheet("")
+
+            except ValueError as e:
+                for txt_box in [self.accounts_file_txt1, self.accounts_file_txt2, self.accounts_file_txt3, self.accounts_file_txt4]:
+                    txt_box.setStyleSheet(
+                        "QLineEdit {\n"
+                        "    border-width: 4px; \n"
+                        "    border-radius: 8px;\n"
+                        "    border-style: solid;\n"
+                        "    border-color: rgb(255,0,0);\n"
+                        "    font-size: 25px;\n"
+                        "}\n"
+                        )
+                    txt_box.setText('')
+                    
     def readCommentsDataFile(self):
         """Read comments data file"""
 
@@ -423,23 +452,41 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         reg = re.compile(r"\.xlsx$")
 
         if (reg.search(self.comments_file_path) is not None):
-            self.comments_data = pd.read_excel(self.comments_file_path, usecols=['Comments', 'Type'])
 
-            # Reinialize values in text boxes
-            self.initialValues()
+            try: 
+                self.comments_data = pd.read_excel(self.comments_file_path, usecols=['Comments', 'Type'])
 
-            # Set file path in text boxes
-            text = self.comments_file_path.split('/')[-1]
-            self.comments_file_txt1.setText(text)
-            self.comments_file_txt3.setText(text)
+                # Reinialize values in text boxes
+                self.initialValues()
 
-            # Set type of comments in comboBoxes
-            com_type = self.comments_data['Type'].unique()
 
-            self.comments_type_comboBox1.clear()
-            self.comments_type_comboBox2.clear()
-            self.comments_type_comboBox1.addItems(com_type)
-            self.comments_type_comboBox2.addItems(com_type)
+                # Set file path in text boxes and
+                # change accounts file path text boxes properties
+                text = self.comments_file_path.split('/')[-1]
+                for txt_box in [self.comments_file_txt1, self.comments_file_txt3]:
+                    txt_box.setText(text)
+                    txt_box.setStyleSheet("")
+            
+                # Set type of comments in comboBoxes
+                com_type = self.comments_data['Type'].unique()
+
+                self.comments_type_comboBox1.clear()
+                self.comments_type_comboBox2.clear()
+                self.comments_type_comboBox1.addItems(com_type)
+                self.comments_type_comboBox2.addItems(com_type)
+
+            except ValueError as e:
+                for txt_box in [self.comments_file_txt1, self.comments_file_txt3]:
+                    txt_box.setStyleSheet(
+                        "QLineEdit {\n"
+                        "    border-width: 4px; \n"
+                        "    border-radius: 8px;\n"
+                        "    border-style: solid;\n"
+                        "    border-color: rgb(255,0,0);\n"
+                        "    font-size: 25px;\n"
+                        "}\n"
+                        )
+                    txt_box.setText('')
 
 
 

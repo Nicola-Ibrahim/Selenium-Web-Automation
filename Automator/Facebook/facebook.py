@@ -49,8 +49,8 @@ class Facebook(WbAutomator):
             # self.worker_book.close()
 
 
-    def __init__(self, accounts_file_path, accounts_data) :
-        super().__init__(website="https://www.facebook.com/", logfile_path="./logs/Facebook accounts logout info.log")
+    def __init__(self, driver_type, accounts_file_path, accounts_data) :
+        super().__init__(driver_type=driver_type, website="https://www.facebook.com/", logfile_path="./logs/Facebook accounts logout info.log")
 
         self._NEW_ACCOUNT_BUTTON_XPTH = "//a[@role='button' and @class= '_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy']"
 

@@ -4,16 +4,15 @@ from Automator.Facebook.facebook import Facebook
 
 import random
 import emoji
-import typing
 
 class LikesOnPostUIWorker(QtCore.QThread):
     
-    finished = QtCore.pyqtSignal()
+    run_error = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, accounts_file_path, accounts_data, url: str,  parent: typing.Optional['QtCore.QObject']) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(accounts_file_path, accounts_data)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
@@ -41,27 +40,27 @@ class LikesOnPostUIWorker(QtCore.QThread):
                 self.settings.setValue('start_count', ind+1)
             
             self.settings.setValue('start_count', 1)
-
-            self.facebook.worker_book.save(self.facebook.accounts_file_path)
-            self.facebook.worker_book.close()
-            
-        except (NoSuchWindowException or WebDriverException) as e:
-            return
-        finally:
+                 
+        except (NoSuchWindowException,  WebDriverException) as e:
+            self.run_error.emit(ind, row['Full name'])
+        
+        else:
             try:
                 self.facebook.driver.close()
             except WebDriverException as e:
                 pass
+
+        finally:
+            self.facebook.worker_book.save(self.facebook.accounts_file_path)
+            self.facebook.worker_book.close()
             self.finished.emit()
 
 class PageFollowingUIWorker(QtCore.QThread):
 
-    finished = QtCore.pyqtSignal()
-
-    def __init__(self, accounts_file_path, accounts_data, url: str,  parent: typing.Optional['QtCore.QObject']) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(accounts_file_path, accounts_data)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
@@ -94,7 +93,7 @@ class PageFollowingUIWorker(QtCore.QThread):
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
             
-        except (NoSuchWindowException or WebDriverException) as e:
+        except (NoSuchWindowException, WebDriverException) as e:
             return
         finally:
             try:
@@ -104,12 +103,12 @@ class PageFollowingUIWorker(QtCore.QThread):
             self.finished.emit()
 
 class CommentsOnPostWorker(QtCore.QThread):
-    finished = QtCore.pyqtSignal()
+    
 
-    def __init__(self, accounts_file_path, accounts_data, comments_data, comments_type, url: str, parent: typing.Optional['QtCore.QObject']) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(accounts_file_path, accounts_data)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
@@ -125,7 +124,8 @@ class CommentsOnPostWorker(QtCore.QThread):
                 if(self.facebook.isProfileActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments_data), use_aliases=True))
+                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments_data), use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize('رائع:heart_eyes::heart_eyes:', use_aliases=True))
                     self.facebook.logout()
 
                 else:
@@ -141,7 +141,7 @@ class CommentsOnPostWorker(QtCore.QThread):
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
             
-        except (NoSuchWindowException or WebDriverException) as e:
+        except (NoSuchWindowException, WebDriverException) as e:
             return
         finally:
             try:
@@ -153,12 +153,12 @@ class CommentsOnPostWorker(QtCore.QThread):
 class Likes_CommentsOnPostWorker(QtCore.QThread):
     
    
-    finished = QtCore.pyqtSignal()
+    
 
-    def __init__(self, accounts_file_path, accounts_data, comments_data, comments_type, url: str, parent: typing.Optional['QtCore.QObject']) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(accounts_file_path, accounts_data)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
@@ -191,7 +191,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
             
-        except (NoSuchWindowException or WebDriverException) as e:
+        except (NoSuchWindowException, WebDriverException) as e:
             return
         finally:
             try:

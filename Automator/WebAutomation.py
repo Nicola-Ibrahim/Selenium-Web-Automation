@@ -10,7 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException
+from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -22,21 +22,26 @@ import logging
 class WbAutomator():
     """Parent class automator"""
 
-    def __init__(self, website, logfile_path):
+    def __init__(self, driver_type, website, logfile_path):
         """Initial a Chrome driver"""
         
         # create new logger for testing 
         # self._logger = self.initLogger(logfile_path)
 
-        # capa = DesiredCapabilities.CHROME
-        # capa["pageLoadStrategy"] = "none"
+        if(driver_type == 'Chrome'):
+            # capa = DesiredCapabilities.CHROME
+            # capa["pageLoadStrategy"] = "none"
+            
+            options = Options()
+            # options.add_argument('--headless')
+            options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
+            options.add_experimental_option("excludeSwitches", ['enable-logging'])
 
-        options = Options()
-        # options.add_argument('--headless')
-        options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
-        options.add_experimental_option("excludeSwitches", ['enable-logging'])
+            self.driver = webdriver.Chrome(executable_path='chromedriver_win32/chromedriver.exe', options=options)
 
-        self.driver = webdriver.Chrome(executable_path='chromedriver_win32/chromedriver.exe', options=options)
+        elif(driver_type == 'Firefox'):
+            self.driver = webdriver.Firefox(executable_path='geckodriver-v0.29.1-win64/geckodriver.exe')
+            
         self.website = website
         self.waiting_time = 10
 
@@ -97,7 +102,7 @@ class WbAutomator():
 
             self.driver.get(self.website)
 
-        except (TimeoutException, NoSuchElementException) as e:
+        except (WebDriverException, TimeoutException, NoSuchElementException) as e:
             pass
     
     def chat(self, message, profile_path, message_button_xpath, message_box_xpath):
