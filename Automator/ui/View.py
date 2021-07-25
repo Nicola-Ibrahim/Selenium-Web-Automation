@@ -1,4 +1,6 @@
 
+import numpy as np
+from Automator.ui.model import FacebookAccountsModel, FacebookAccountsSortoModel
 import re
 
 import pandas as pd
@@ -17,9 +19,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.comments_file_path = None
         self.comments_data = None
         self.driver_type = None
-
+        
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
+        self.facebook_accounts_sort_model = None
+        
         self.setupUi(self)
         self.uiChanges()
         self.handleButtons()
@@ -46,13 +50,20 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def uiChanges(self):
         """UI changes after run the program"""
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame'))
+        self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame'))
         
+        # Resize tables view header sections into contentes
+        self.facebook_accounts_tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.facebook_accounts_tableView.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
+        self.facebook_accounts_tableView.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
+
+
         self.settings.setValue('start_count', 1)
         # Centrize the dialog
         r = self.geometry()
         r.moveCenter(QtWidgets.QApplication.desktop().availableGeometry().center()) 
         self.setGeometry(r)
-        
+   
     def initialValues(self):
         """Initialize values for the text boxes"""
         self.start_acc_range_txt1.setText(str(self.settings.value('start_count')))
@@ -76,26 +87,30 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.Likes_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'likes_frame')))
         self.comm_likes_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_likes_frame')))
         self.page_following_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'page_following_frame')))
-        
+        self.group_btn.clicked.connect(self.dispFacebookAccounts)
+
         self.run_btn1.clicked.connect(self.addCommentsOnPostUIworker)
         self.run_btn2.clicked.connect(self.addLikesOnPostUIRun)
         self.run_btn3.clicked.connect(self.addLikes_CommentsOnPostUIRun)
         self.run_btn4.clicked.connect(self.addPageFollowingUIRun)
 
+        # load accounts file action buttons
         self.load_accounts_file_btn1.clicked.connect(self.readAccountDataFile)
         self.load_accounts_file_btn2.clicked.connect(self.readAccountDataFile)
         self.load_accounts_file_btn3.clicked.connect(self.readAccountDataFile)
         self.load_accounts_file_btn4.clicked.connect(self.readAccountDataFile)
         
+        # load comments file action buttons
         self.load_commetns_file_btn1.clicked.connect(self.readCommentsDataFile)
         self.load_commetns_file_btn3.clicked.connect(self.readCommentsDataFile)
         
         
         self.facebook_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame')))
         self.instagram_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'instagram_frame')))
-        
         self.facebook_btn.clicked.connect(self.selectDriverType)
         self.instagram_btn.clicked.connect(self.selectDriverType)
+
+        
         
         
         self.return_btn1.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
@@ -103,8 +118,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def regexValidation(self):
         """Apply regular expression to some UI elements"""
 
-        # Set validation for checking number values
-        validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('\d+'))
+        # Set validation for checking accounts range
+        validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('[1-9]\d+'))
         self.start_acc_range_txt1.setValidator(validator)
         self.start_acc_range_txt2.setValidator(validator)
         self.start_acc_range_txt3.setValidator(validator)
@@ -115,6 +130,12 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.end_acc_range_txt3.setValidator(validator)
         self.end_acc_range_txt4.setValidator(validator)
         
+        # Set validation for checking number of workers
+        validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('[1-4]{1}'))
+        self.num_of_workers_txt1.setValidator(validator)
+        self.num_of_workers_txt2.setValidator(validator)
+        self.num_of_workers_txt3.setValidator(validator)
+        self.num_of_workers_txt4.setValidator(validator)
 
         # Set validation for checking url values
         # validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('(https://www.)*(\w+)(.[a-zA-Z]{1,3})(\/[ء-يa-zA-Z0-9\.-=?_&#]*)*'))
@@ -123,7 +144,6 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.post_url_txt2.setValidator(validator)
         self.post_url_txt3.setValidator(validator)
         self.page_url_txt4.setValidator(validator)
-
 
     def selectDriverType(self):
         self.driver_type = self.driver_type_comboBox.currentText()
@@ -196,17 +216,22 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Creating threads
         for i in range(num_of_workers):
-            # Creating instance from the Facebook classs
             
             worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
             worker.finished.connect(lambda : self.run_btn2.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
+            worker.run_error.connect(lambda ind, name: self.run_error_lbl1.setText(f"Error occured at -> {ind} : {name}"))
             
             worker.start()
   
     def addLikesOnPostUIRun(self):
         """Add likes on a post"""
+
+        # Reset error text boxe
+        self.run_error_lbl2.setText('')
+        self.run_error_lbl2.setStyleSheet('')
+
         url = self.post_url_txt2.text()
         start_num = self.start_acc_range_txt2.text()
         end_num = self.end_acc_range_txt2.text()
@@ -239,8 +264,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.num_of_workers_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
-        start_num = int(start_num)
+        start_num = int(start_num) - 1
         end_num = int(end_num)
+
         if(end_num <= start_num):
             self.end_acc_range_txt2.setFocus()
             QtWidgets.QToolTip.showText(self.end_acc_range_txt2.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
@@ -260,10 +286,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             
             worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], url, self)
+            worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
+            worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
             worker.finished.connect(lambda : self.run_btn2.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at the account:: {ind} : {name}"))
             
             worker.start()
 
@@ -312,8 +339,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.comments_type_comboBox2.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
-        start_num = int(start_num)
+        start_num = int(start_num) -1 
         end_num = int(end_num)
+
         if(end_num <= start_num):
             self.end_acc_range_txt3.setFocus()
             QtWidgets.QToolTip.showText(self.end_acc_range_txt3.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
@@ -336,6 +364,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worker.finished.connect(lambda : self.run_btn3.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
+            worker.run_error.connect(lambda ind, name: self.run_error_lbl3.setText(f"Error occured at -> {ind} : {name}"))
             
             worker.start()
   
@@ -373,8 +402,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.num_of_workers_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
-        start_num = int(start_num)
+        start_num = int(start_num) - 1
         end_num = int(end_num)
+
         if(end_num <= start_num):
             self.end_acc_range_txt4.setFocus()
             QtWidgets.QToolTip.showText(self.end_acc_range_txt4.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
@@ -390,14 +420,24 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.run_btn4.setEnabled(False)
 
 
-         # Creating threads
+        # Creating threads
         for i in range(num_of_workers):
             
             worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], url, self)
             worker.finished.connect(lambda : self.run_btn4.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
+            worker.run_error.connect(lambda ind, name: self.run_error_lbl4.setText(f"Error occured at -> {ind} : {name}"))
             
             worker.start()
+
+
+    def dispFacebookAccounts(self):
+        self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'accounts_groups_frame'))
+        self.facebook_accounts_sort_model = FacebookAccountsSortoModel(FacebookAccountsModel(self.accounts_data))
+        self.facebook_accounts_tableView.setModel(self.facebook_accounts_sort_model)
+        
+        # Change comboBox selected item actions
+        self.groups_comboBox.currentTextChanged['QString'].connect(lambda group_name: self.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
 
 
     ###############
@@ -420,6 +460,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 # Reinialize values in text boxes
                 self.initialValues()
 
+                # Set accounts groups in group comboBox
+                self.groups_comboBox.clear()
+                self.groups_comboBox.addItems(np.insert(self.accounts_data['group'].unique(),0 ,'', axis=0))
 
                 # Set file path in text boxes and
                 # change accounts file path text boxes properties
@@ -427,6 +470,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 for txt_box in [self.accounts_file_txt1, self.accounts_file_txt2, self.accounts_file_txt3, self.accounts_file_txt4]:
                     txt_box.setText(text)
                     txt_box.setStyleSheet("")
+                
+
 
             except ValueError as e:
                 for txt_box in [self.accounts_file_txt1, self.accounts_file_txt2, self.accounts_file_txt3, self.accounts_file_txt4]:

@@ -221,7 +221,7 @@ class Facebook(WbAutomator):
         """Check if the specific profile is disable"""
         try:
             
-            label = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, self._LOCKED_PROFILE_TEXT_XPATH)))
+            label = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOCKED_PROFILE_TEXT_XPATH)))
             if(label.text in ("تم تعطيل حسابك", "Your account has been disabled")):
                 return False
 

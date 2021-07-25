@@ -97,7 +97,7 @@ class WbAutomator():
             logout_button.click()
 
             if(logout_button_xpath2 != None):
-                logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self.logout_button_xpath2)))
+                logout_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, logout_button_xpath2)))
                 logout_button.click()
 
             self.driver.get(self.website)
