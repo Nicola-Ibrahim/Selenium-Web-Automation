@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UICnMxNe.ui'
+# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIcFbqwg.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -1349,10 +1349,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_35.setObjectName("horizontalLayout_35")
         spacerItem25 = QtWidgets.QSpacerItem(364, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_35.addItem(spacerItem25)
-        self.add_likes_comments_run_btn_2 = QtWidgets.QPushButton(self.frame_37)
-        self.add_likes_comments_run_btn_2.setMinimumSize(QtCore.QSize(200, 40))
-        self.add_likes_comments_run_btn_2.setObjectName("add_likes_comments_run_btn_2")
-        self.horizontalLayout_35.addWidget(self.add_likes_comments_run_btn_2)
+        self.facebook_groups_add_likes_comments_run_btn = QtWidgets.QPushButton(self.frame_37)
+        self.facebook_groups_add_likes_comments_run_btn.setMinimumSize(QtCore.QSize(200, 40))
+        self.facebook_groups_add_likes_comments_run_btn.setObjectName("facebook_groups_add_likes_comments_run_btn")
+        self.horizontalLayout_35.addWidget(self.facebook_groups_add_likes_comments_run_btn)
         self.verticalLayout_8.addWidget(self.frame_37)
         self.accounts_groups_stackedWidget.addWidget(self.acc_groups_likes_comments_frame)
         self.horizontalLayout_28.addWidget(self.accounts_groups_stackedWidget)
@@ -1530,7 +1530,7 @@ class Ui_MainWindow(object):
         self.label_29.setText(_translate("MainWindow", "# of worker"))
         self.label_34.setText(_translate("MainWindow", "Comments Type"))
         self.label_32.setText(_translate("MainWindow", "Account group"))
-        self.add_likes_comments_run_btn_2.setText(_translate("MainWindow", "Run"))
+        self.facebook_groups_add_likes_comments_run_btn.setText(_translate("MainWindow", "Run"))
         self.label_13.setText(_translate("MainWindow", "Select driver type"))
         self.driver_type_comboBox.setItemText(0, _translate("MainWindow", "Chrome"))
         self.driver_type_comboBox.setItemText(1, _translate("MainWindow", "Firefox"))

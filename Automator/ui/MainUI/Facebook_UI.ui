@@ -2693,7 +2693,7 @@ Likes</string>
                     </spacer>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="add_likes_comments_run_btn_2">
+                    <widget class="QPushButton" name="facebook_groups_add_likes_comments_run_btn">
                      <property name="minimumSize">
                       <size>
                        <width>200</width>

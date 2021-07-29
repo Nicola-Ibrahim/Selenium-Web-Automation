@@ -122,7 +122,7 @@ class CommentsOnPostWorker(QtCore.QThread):
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
         # self.comments_data = 
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
@@ -139,7 +139,7 @@ class CommentsOnPostWorker(QtCore.QThread):
                 if(self.facebook.isProfileActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
                     # self.facebook.addCommentOnPost(self.url, emoji.emojize('رائع:heart_eyes::heart_eyes:', use_aliases=True))
                     self.facebook.logout()
 
@@ -178,7 +178,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
@@ -195,7 +195,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
                     self.facebook.logout()
 
                 else:
@@ -349,3 +349,61 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
      
+
+class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
+    """A thread responsible for putting likes and comments on the friend post"""
+    
+    
+    # Signal to be emited if there any error
+    # it sends the account name and his index
+    run_error = QtCore.pyqtSignal(int, str)
+
+    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
+        super().__init__(parent=parent)
+
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
+        self.url = url
+        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+
+    def run(self):
+        try:
+            for ind, row in self.facebook.accounts_data.iterrows():
+                # start = time.perf_counter()
+
+                self.facebook.login(email=row['Email'], password=row['Facebook password'])
+
+
+                # Check if the account is active
+                if(self.facebook.isProfileActive()):
+                    self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
+                    self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
+                    self.facebook.addLikeOnPost(self.url)
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    self.facebook.logout()
+
+                else:
+                    self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
+                    self.facebook.logout(active_acc=False)
+
+                # finish = time.perf_counter()
+                # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+                self.settings.setValue('start_count', ind+1)
+            
+            self.settings.setValue('start_count', 1)
+
+            self.facebook.worker_book.save(self.facebook.accounts_file_path)
+            self.facebook.worker_book.close()
+            
+        except (NoSuchWindowException, WebDriverException) as e:
+            self.run_error.emit(ind + 1, row['Full name'])
+        
+        else:
+            self.facebook.driver.close()
+            
+        finally:
+            self.facebook.worker_book.save(self.facebook.accounts_file_path)
+            self.facebook.worker_book.close()
+            self.finished.emit()
+            
+
+

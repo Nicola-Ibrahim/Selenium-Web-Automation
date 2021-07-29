@@ -4,7 +4,6 @@ A file should be used to store facebook accounts (email, password) and use them 
 """
 
 from pandas.core.frame import DataFrame
-import selenium
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC

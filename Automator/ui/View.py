@@ -1,15 +1,16 @@
 
-from Automator.Facebook.facebook import Facebook
 import numpy as np
-from Automator.ui.model import FacebookAccountsModel, FacebookAccountsSortoModel
+import pandas as pd
+import random
 import re
 
-import pandas as pd
+from Automator.ui.model import FacebookAccountsModel, FacebookAccountsSortoModel
 from Automator.ui.threads import AddMulitpleFriendsWorker, CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
 from Automator.ui.MainUI.ui_Facebook_UI import Ui_MainWindow
+from Automator.WebAutomation import splitting
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from Automator.WebAutomation import splitting
 
 class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -39,8 +40,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         reply = QtWidgets.QMessageBox.question(
             self,
-            "إغلاق",
-            " تأكيد  ؟",
+            "Close",
+            "Closing the app ?",
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
         )
         if reply == QtWidgets.QMessageBox.Yes:
@@ -210,8 +211,10 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        data = self.accounts_data[start_num:end_num]
-        groups_items_df = splitting(data, num_of_workers)
+        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
+        
+        # Take commnets data as selected comments type data 
+        comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
         
         self.add_likes_run_btn.setEnabled(False)
 
@@ -219,7 +222,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
+            worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
@@ -273,8 +276,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        data = self.accounts_data[start_num:end_num]
-        groups_items_df = splitting(data, num_of_workers)
+        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
         self.add_likes_run_btn.setEnabled(False)
 
@@ -282,7 +284,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], url, self)
+            worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
@@ -337,8 +339,10 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        data = self.accounts_data[start_num:end_num]
-        groups_items_df = splitting(data, num_of_workers)
+        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
+        
+        # Take commnets data as selected comments type data 
+        comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
         
         self.add_likes_comments_run_btn.setEnabled(False)
 
@@ -347,7 +351,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             # Creating instance from the Facebook classs
             
-            worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], self.comments_data, comments_type, url, self)
+            worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.finished.connect(lambda : self.add_likes_comments_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
@@ -398,8 +402,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        data = self.accounts_data[start_num:end_num]
-        groups_items_df = splitting(data, num_of_workers)
+        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
         self.run_btn4.setEnabled(False)
 
@@ -407,7 +410,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], url, self)
+            worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.finished.connect(lambda : self.run_btn4.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
             worker.run_error.connect(lambda ind, name : self.run_error_lbl4.setStyleSheet("color: rgb(255,0,0);"))
@@ -462,7 +465,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = AddMulitpleFriendsWorker(self.driver_type, self.accounts_file_path, groups_items_df[i], url, self)
+            worker = AddMulitpleFriendsWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.finished.connect(lambda : self.add_friendship_run_btn.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
             worker.run_error.connect(lambda ind, name : self.run_error_lbl4.setStyleSheet("color: rgb(255,0,0);"))
@@ -479,7 +482,68 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.groups_comboBox1.currentTextChanged['QString'].connect(lambda group_name: self.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
         self.groups_comboBox2.currentTextChanged['QString'].connect(lambda group_name: self.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
 
+    def addLikes_CommentsOnFriendPostUIRun(self):
+        """Add likes and comments on a post"""
+        url = self.post_url_txt5.text()
+        num_of_comments = self.facebook_group_num_of_likes_comms_txt.text()
+        num_of_workers = self.num_of_workers_txt5.text()
+        comments_type = self.comments_type_comboBox3.currentText()
+        accounts_group = self.groups_comboBox2.currentText()
 
+        # Check if any of the texts is empty
+        if(url == ''):
+            self.post_url_txt5.setFocus()
+            QtWidgets.QToolTip.showText(self.post_url_txt5.mapToGlobal(QtCore.QPoint(0,10)),"Enter url")
+            return
+        
+
+        elif(num_of_comments == ''):
+            self.num_of_workers_txt5.setFocus()
+            QtWidgets.QToolTip.showText(self.num_of_workers_txt5.mapToGlobal(QtCore.QPoint(0,10)),"Enter start number")
+            return
+        
+      
+        elif(num_of_workers == ''):
+            self.num_of_workers_txt5.setFocus()
+            QtWidgets.QToolTip.showText(self.num_of_workers_txt5.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            return
+
+        elif(comments_type == ''):
+            self.comments_type_comboBox3.currentText.setFocus()
+            QtWidgets.QToolTip.showText(self.comments_type_comboBox3.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            return
+        
+        elif(accounts_group == ''):
+            self.groups_comboBox2.currentText.setFocus()
+            QtWidgets.QToolTip.showText(self.groups_comboBox2.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            return
+
+        num_of_workers = int(num_of_workers)
+
+
+        # split accounts data frame into subsets depending on the number of threads
+        data = self.accounts_data[self.accounts_data['group']==accounts_group].sample(num_of_comments)
+        accounts_data_splits = splitting(data, num_of_workers)
+        
+        # Take commnets data as selected comments type data 
+        comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
+        
+        self.add_likes_comments_run_btn.setEnabled(False)
+
+
+        # Creating threads
+        for i in range(num_of_workers):
+            # Creating instance from the Facebook classs
+            
+            worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            worker.finished.connect(lambda : self.facebook_groups_add_likes_comments_run_btn.setEnabled(True))
+            worker.finished.connect(self.initialValues)
+            worker.finished.connect(worker.deleteLater)
+            worker.run_error.connect(lambda ind, name : self.run_error_lbl3.setStyleSheet("color: rgb(255,0,0);"))
+            worker.run_error.connect(lambda ind, name: self.run_error_lbl3.setText(f"Error occured at -> {ind} : {name}"))
+            
+            worker.start()
+  
     ###############
     # Read files #
     ##############
