@@ -49,7 +49,8 @@ class FacebookAccountsModel(QtCore.QAbstractTableModel):
             return section + 1
 
         return None
-    
+
+
 class FacebookAccountsSortoModel(QtCore.QSortFilterProxyModel):
     """ Daily customers sorting model"""
     def __init__(self, source_model, parent = None):

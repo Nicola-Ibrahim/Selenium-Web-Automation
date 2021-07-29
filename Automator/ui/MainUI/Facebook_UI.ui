@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
+    <width>1100</width>
     <height>750</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>900</width>
+    <width>1100</width>
     <height>750</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>900</width>
+    <width>1100</width>
     <height>750</height>
    </size>
   </property>
@@ -738,7 +738,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
-            <widget class="QPushButton" name="comments_btn">
+            <widget class="QPushButton" name="facebook_comments_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -751,7 +751,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="Likes_btn">
+            <widget class="QPushButton" name="facebook_likes_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -764,7 +764,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="comm_likes_btn">
+            <widget class="QPushButton" name="facebook_comm_likes_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -779,7 +779,7 @@ Likes</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="page_following_btn">
+            <widget class="QPushButton" name="facebook_page_following_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -792,7 +792,7 @@ Likes</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="group_btn">
+            <widget class="QPushButton" name="facebook_group_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -818,7 +818,7 @@ Likes</string>
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="return_btn1">
+            <widget class="QPushButton" name="facebook_return_btn1">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -876,129 +876,6 @@ Likes</string>
               <property name="placeholderText">
                <string>Enter post url</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="frame_25">
-              <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_21">
-               <property name="spacing">
-                <number>7</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_2">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Accounts file</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="accounts_file_txt1">
-                 <property name="minimumSize">
-                  <size>
-                   <width>300</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="dragEnabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="load_accounts_file_btn1">
-                 <property name="minimumSize">
-                  <size>
-                   <width>70</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>load</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="frame_27">
-              <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_24">
-               <property name="spacing">
-                <number>7</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_23">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>comments file</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="comments_file_txt1">
-                 <property name="minimumSize">
-                  <size>
-                   <width>300</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="load_commetns_file_btn1">
-                 <property name="minimumSize">
-                  <size>
-                   <width>70</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>load</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </widget>
             </item>
             <item>
@@ -1325,7 +1202,7 @@ Likes</string>
                 </spacer>
                </item>
                <item>
-                <widget class="QPushButton" name="run_btn1">
+                <widget class="QPushButton" name="add_comments_run_btn">
                  <property name="minimumSize">
                   <size>
                    <width>200</width>
@@ -1365,63 +1242,6 @@ Likes</string>
               <property name="placeholderText">
                <string>Enter post url</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="frame_24">
-              <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_20">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Accounts file</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="accounts_file_txt2">
-                 <property name="minimumSize">
-                  <size>
-                   <width>300</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="load_accounts_file_btn2">
-                 <property name="minimumSize">
-                  <size>
-                   <width>70</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>load</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </widget>
             </item>
             <item>
@@ -1676,7 +1496,7 @@ Likes</string>
                 </spacer>
                </item>
                <item>
-                <widget class="QPushButton" name="run_btn2">
+                <widget class="QPushButton" name="add_likes_run_btn">
                  <property name="minimumSize">
                   <size>
                    <width>200</width>
@@ -1716,120 +1536,6 @@ Likes</string>
               <property name="placeholderText">
                <string>Enter post url</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="frame_29">
-              <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_26">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_25">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Accounts file</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="accounts_file_txt3">
-                 <property name="minimumSize">
-                  <size>
-                   <width>300</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="load_accounts_file_btn3">
-                 <property name="minimumSize">
-                  <size>
-                   <width>70</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>load</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="frame_28">
-              <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_25">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_24">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Comments file</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="comments_file_txt3">
-                 <property name="minimumSize">
-                  <size>
-                   <width>300</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="load_commetns_file_btn3">
-                 <property name="minimumSize">
-                  <size>
-                   <width>70</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>load</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </widget>
             </item>
             <item>
@@ -2147,7 +1853,7 @@ Likes</string>
                 </spacer>
                </item>
                <item>
-                <widget class="QPushButton" name="run_btn3">
+                <widget class="QPushButton" name="add_likes_comments_run_btn">
                  <property name="minimumSize">
                   <size>
                    <width>200</width>
@@ -2187,63 +1893,6 @@ Likes</string>
               <property name="placeholderText">
                <string>Enter page url</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QFrame" name="frame_26">
-              <property name="frameShape">
-               <enum>QFrame::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Raised</enum>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_22">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_10">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Accounts file</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="accounts_file_txt4">
-                 <property name="minimumSize">
-                  <size>
-                   <width>300</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="load_accounts_file_btn4">
-                 <property name="minimumSize">
-                  <size>
-                   <width>70</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>load</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </widget>
             </item>
             <item>
@@ -2498,7 +2147,7 @@ Likes</string>
                 </spacer>
                </item>
                <item>
-                <widget class="QPushButton" name="run_btn4">
+                <widget class="QPushButton" name="add_page_followings_run_btn">
                  <property name="minimumSize">
                   <size>
                    <width>200</width>
@@ -2518,58 +2167,549 @@ Likes</string>
           <widget class="QWidget" name="accounts_groups_frame">
            <layout class="QHBoxLayout" name="horizontalLayout_28">
             <item>
-             <widget class="QFrame" name="frame_21">
+             <widget class="QFrame" name="frame_32">
               <property name="frameShape">
                <enum>QFrame::StyledPanel</enum>
               </property>
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
               </property>
-              <layout class="QGridLayout" name="gridLayout_4">
+              <layout class="QVBoxLayout" name="verticalLayout_7">
                <property name="leftMargin">
                 <number>0</number>
                </property>
                <property name="rightMargin">
                 <number>0</number>
                </property>
-               <item row="0" column="0">
-                <widget class="QFrame" name="frame_30">
-                 <property name="frameShape">
-                  <enum>QFrame::StyledPanel</enum>
+               <item>
+                <widget class="QPushButton" name="facebook_groups_add_friends_btn">
+                 <property name="minimumSize">
+                  <size>
+                   <width>100</width>
+                   <height>40</height>
+                  </size>
                  </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Raised</enum>
+                 <property name="text">
+                  <string>Add Friends</string>
                  </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_27">
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>11</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>11</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label_26">
-                    <property name="text">
-                     <string>TextLabel</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QComboBox" name="groups_comboBox"/>
-                  </item>
-                 </layout>
                 </widget>
                </item>
-               <item row="1" column="0">
-                <widget class="QTableView" name="facebook_accounts_tableView"/>
+               <item>
+                <widget class="QPushButton" name="facebook_groups_add_comms_likes_btn">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Comments
+and
+Likes</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_8">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
               </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QStackedWidget" name="accounts_groups_stackedWidget">
+              <property name="currentIndex">
+               <number>1</number>
+              </property>
+              <widget class="QWidget" name="acc_groups_add_friends_frame">
+               <layout class="QHBoxLayout" name="horizontalLayout_30">
+                <item>
+                 <widget class="QFrame" name="frame_21">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QGridLayout" name="gridLayout_4">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <item row="2" column="0">
+                    <widget class="QTableView" name="facebook_accounts_tableView"/>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QFrame" name="frame_30">
+                     <property name="frameShape">
+                      <enum>QFrame::StyledPanel</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Raised</enum>
+                     </property>
+                     <layout class="QHBoxLayout" name="horizontalLayout_27">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>11</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>11</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="label_26">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>Account group</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QComboBox" name="groups_comboBox1">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item row="3" column="0">
+                    <widget class="QFrame" name="frame_31">
+                     <property name="frameShape">
+                      <enum>QFrame::StyledPanel</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Raised</enum>
+                     </property>
+                     <layout class="QHBoxLayout" name="horizontalLayout_29">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="label_27">
+                        <property name="text">
+                         <string>Friendships</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="add_friendship_run_btn">
+                        <property name="text">
+                         <string>Run</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="acc_groups_likes_comments_frame">
+               <layout class="QVBoxLayout" name="verticalLayout_8">
+                <item>
+                 <widget class="QLabel" name="label_28">
+                  <property name="text">
+                   <string>ADD COMMENTS and LIKES on fiends post</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="post_url_txt5">
+                  <property name="minimumSize">
+                   <size>
+                    <width>500</width>
+                    <height>50</height>
+                   </size>
+                  </property>
+                  <property name="placeholderText">
+                   <string>Enter post url</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_34">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_32">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_30">
+                     <property name="minimumSize">
+                      <size>
+                       <width>400</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Number of likes and comments</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="facebook_group_num_of_likes_comms_txt">
+                     <property name="minimumSize">
+                      <size>
+                       <width>90</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_16">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_36">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>50</height>
+                   </size>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_34">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="run_error_lbl3_2">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_33">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_31">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_29">
+                     <property name="minimumSize">
+                      <size>
+                       <width>200</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string># of worker</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="num_of_workers_txt5">
+                     <property name="minimumSize">
+                      <size>
+                       <width>90</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_15">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_39">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_37">
+                   <property name="spacing">
+                    <number>7</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>11</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>11</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_34">
+                     <property name="minimumSize">
+                      <size>
+                       <width>200</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Comments Type</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="comments_type_comboBox3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>250</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_19">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_35">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_33">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>11</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>11</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_32">
+                     <property name="minimumSize">
+                      <size>
+                       <width>200</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Account group</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="groups_comboBox2">
+                     <property name="minimumSize">
+                      <size>
+                       <width>250</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_18">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_9">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>233</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_37">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_35">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <spacer name="horizontalSpacer_17">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>364</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="add_likes_comments_run_btn_2">
+                     <property name="minimumSize">
+                      <size>
+                       <width>200</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Run</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </widget>
             </item>
            </layout>
@@ -2581,7 +2721,33 @@ Likes</string>
       <widget class="QWidget" name="Instagram_frame"/>
       <widget class="QWidget" name="Main_frame">
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="1" column="0">
+        <item row="2" column="1">
+         <spacer name="verticalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <spacer name="verticalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="1">
          <widget class="QFrame" name="frame_8">
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
@@ -2590,85 +2756,6 @@ Likes</string>
            <enum>QFrame::Raised</enum>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item>
-            <widget class="QFrame" name="frame_6">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <property name="spacing">
-               <number>20</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <spacer name="horizontalSpacer_18">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="instagram_btn">
-                <property name="minimumSize">
-                 <size>
-                  <width>200</width>
-                  <height>100</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Instagram</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="facebook_btn">
-                <property name="minimumSize">
-                 <size>
-                  <width>200</width>
-                  <height>100</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Facebook</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_22">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item>
             <widget class="QFrame" name="frame_9">
              <property name="frameShape">
@@ -2681,19 +2768,6 @@ Likes</string>
               <property name="spacing">
                <number>30</number>
               </property>
-              <item>
-               <spacer name="horizontalSpacer_23">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item>
                <widget class="QLabel" name="label_13">
                 <property name="minimumSize">
@@ -2727,18 +2801,172 @@ Likes</string>
                 </item>
                </widget>
               </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame_40">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_38">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
               <item>
-               <spacer name="horizontalSpacer_24">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
+               <widget class="QLabel" name="label_35">
+                <property name="minimumSize">
                  <size>
-                  <width>40</width>
-                  <height>20</height>
+                  <width>200</width>
+                  <height>50</height>
                  </size>
                 </property>
-               </spacer>
+                <property name="text">
+                 <string>Accounts file</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="accounts_file_txt">
+                <property name="minimumSize">
+                 <size>
+                  <width>300</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="load_accounts_file_btn">
+                <property name="minimumSize">
+                 <size>
+                  <width>70</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>load</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame_41">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_39">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_36">
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Comments file</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="comments_file_txt">
+                <property name="minimumSize">
+                 <size>
+                  <width>300</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="load_commetns_file_btn">
+                <property name="minimumSize">
+                 <size>
+                  <width>70</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>load</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame_6">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <property name="spacing">
+               <number>20</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="instagram_btn">
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Instagram</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="facebook_btn">
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Facebook</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -2746,28 +2974,28 @@ Likes</string>
           </layout>
          </widget>
         </item>
-        <item row="2" column="0">
-         <spacer name="verticalSpacer_7">
+        <item row="1" column="0">
+         <spacer name="horizontalSpacer_27">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
-            <height>40</height>
+            <width>40</width>
+            <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
-        <item row="0" column="0">
-         <spacer name="verticalSpacer_4">
+        <item row="1" column="2">
+         <spacer name="horizontalSpacer_28">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
-            <height>40</height>
+            <width>40</width>
+            <height>20</height>
            </size>
           </property>
          </spacer>
@@ -2783,7 +3011,7 @@ Likes</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
+     <width>1100</width>
      <height>23</height>
     </rect>
    </property>

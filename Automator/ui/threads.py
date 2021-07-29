@@ -122,9 +122,9 @@ class CommentsOnPostWorker(QtCore.QThread):
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values)
         self.url = url
-        self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
+        # self.comments_data = 
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
     def run(self):
@@ -139,8 +139,8 @@ class CommentsOnPostWorker(QtCore.QThread):
                 if(self.facebook.isProfileActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
-                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments_data), use_aliases=True))
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize('رائع:heart_eyes::heart_eyes:', use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
+                    # self.facebook.addCommentOnPost(self.url, emoji.emojize('رائع:heart_eyes::heart_eyes:', use_aliases=True))
                     self.facebook.logout()
 
                 else:
@@ -178,9 +178,8 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
+        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values)
         self.url = url
-        self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
     def run(self):
@@ -196,7 +195,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.comments_data), use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
                     self.facebook.logout()
 
                 else:
@@ -223,14 +222,12 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
             
-
-
-class AddMulitplePersonsWorker(QtCore.QThread):
+class AddMulitpleFriendsWorker(QtCore.QThread):
     """Add many persons among each others at the same group"""
 
     run_error = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, method, parent) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, method, parent) :
         """method : as default 'enhance'
             we can use ('enhanced2', 'all')
             enhanced2 -> it uses combinations to select available accounts for adding for each individual account
@@ -239,58 +236,58 @@ class AddMulitplePersonsWorker(QtCore.QThread):
         super().__init__(parent=parent)
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
-        self.url = url
-        self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
         self.method = method
         self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
     def run(self):
         
         try:
-            if(self.method == 'enhanced2'):
-                comb = list(combinations(self.facebook.accounts_data.index.values, r=2))
-                indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
+            for group in self.facebook.accounts_data['group'].unique():
+                data = self.facebook.accounts_data[self.accounts_data['group']==group].reset_index(drop=True)
 
-                for key in indices.keys():
-                    self.facebook.login(email=self.facebook.accounts_data.loc[key,'Email'], password=self.facebook.accounts_data.loc[key,'Facebook password'])
-                    
-                    if(self.facebook.isProfileActive()):
-                        self.facebook.sheet.cell(key + 2, 8).value = 'Active'
-                        self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
-                    
-                        for val in indices[key]:
-                            self.facebook._logger.info(f"add person {val}")
-                            self.facebook.addPerson(profile_path=self.facebook.accounts_data.loc[val,'Profile path'])
-                    
-                        self.facebook.logout()
+                if(self.method == 'enhanced2'):
+                    comb = list(combinations(data.index.values, r=2))
+                    indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
 
-                    else:
-                        self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
-                        self.facebook.logout(active_acc=False)
+                    for key in indices.keys():
+                        self.facebook.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                        
+                        if(self.facebook.isProfileActive()):
+                            self.facebook.sheet.cell(key + 2, 8).value = 'Active'
+                            self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
+                        
+                            for val in indices[key]:
+                                self.facebook.addPerson(profile_path=data.loc[val,'Profile path'])
+                        
+                            self.facebook.logout()
 
-            elif(self.method == 'all'):
-                perm = list(permutations(self.facebook.accounts_data.index.values, r=2))
-                indices = {key: [val for _, val in values] for key, values in groupby(perm, itemgetter(0))}
+                        else:
+                            self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
+                            self.facebook.logout(active_acc=False)
 
-                for key in indices.keys():
-                    self.facebook.login(email=self.facebook.accounts_data.loc[key,'Email'], password=self.facebook.accounts_data.loc[key,'Facebook password'])
-                    
-                    if(self.facebook.isProfileActive()):
-                        self.facebook.sheet.cell(key + 2, self.facebook.accounts_data.columns.get_loc('Account status')+1).value = 'Active'
-                        self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
-                    
-                        for val in indices[key]:
-                            self.facebook.addPerson(profile_path=self.facebook.accounts_data.loc[val,'Profile path'])
-                            self.facebook.acceptPerson(profile_path=self.facebook.accounts_data.loc[val,'Profile path'])
-                    
-                        self.facebook.logout()
+                elif(self.method == 'all'):
+                    perm = list(permutations(data.index.values, r=2))
+                    indices = {key: [val for _, val in values] for key, values in groupby(perm, itemgetter(0))}
 
-                    else:
-                        self.facebook.sheet.cell(key + 2, self.facebook.accounts_data.columns.get_loc('Account status')+1).value = 'Inactive'
-                        self.facebook.logout(active_acc=False)
+                    for key in indices.keys():
+                        self.facebook.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                        
+                        if(self.facebook.isProfileActive()):
+                            self.facebook.sheet.cell(key + 2, data.columns.get_loc('Account status')+1).value = 'Active'
+                            self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
+                        
+                            for val in indices[key]:
+                                self.facebook.addPerson(profile_path=data.loc[val,'Profile path'])
+                                self.facebook.acceptPerson(profile_path=data.loc[val,'Profile path'])
+                        
+                            self.facebook.logout()
+
+                        else:
+                            self.facebook.sheet.cell(key + 2, data.columns.get_loc('Account status')+1).value = 'Inactive'
+                            self.facebook.logout(active_acc=False)
 
         except (NoSuchWindowException, WebDriverException) as e:
-            self.run_error.emit(key + 1, self.facebook.accounts_data.loc[key, 'Full name'])
+            self.run_error.emit(key + 1, data.loc[key, 'Full name'])
         
         else:
             self.facebook.driver.close()
@@ -300,7 +297,7 @@ class AddMulitplePersonsWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
 
-class AcceptMulitplePersonsWorker(QtCore.QThread): 
+class AcceptMulitpleFriendsWorker(QtCore.QThread): 
 
     run_error = QtCore.pyqtSignal(int, str)
 

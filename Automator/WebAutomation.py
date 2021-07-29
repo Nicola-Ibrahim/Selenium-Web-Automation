@@ -23,7 +23,7 @@ class WbAutomator():
     """Parent class automator"""
 
     def __init__(self, driver_type, website, logfile_path):
-        """Initial a Chrome driver"""
+        """Initial a Chrome or Firefox driver"""
         
         # create new logger for testing 
         # self._logger = self.initLogger(logfile_path)
@@ -52,7 +52,7 @@ class WbAutomator():
         self.driver.get(self.website)
 
 
-    def initLogger(self, path):
+    def initLogger(self, path:str):
         """Intial new logger
         path: logger file path
         """
@@ -66,11 +66,10 @@ class WbAutomator():
 
         return logger
 
-        
     def signUp(self):
         pass
 
-    def login(self, email, password, email_xpath, pass_xpath, login_button_xpath):
+    def login(self, email:str, password:str, email_xpath, pass_xpath, login_button_xpath):
         """Login into an account"""
         # Search for email textBox, password textBox, and login button
         try:
@@ -105,7 +104,7 @@ class WbAutomator():
         except (WebDriverException, TimeoutException, NoSuchElementException) as e:
             pass
     
-    def chat(self, message, profile_path, message_button_xpath, message_box_xpath):
+    def chat(self, message:str, profile_path:str, message_button_xpath, message_box_xpath):
         """Chat with a person"""
 
         # Search for message button and send a message
@@ -125,7 +124,7 @@ class WbAutomator():
         except TimeoutException as e:
             pass
     
-    def addCommentOnPost(self, post_path, comment, comment_box_xpath):
+    def addCommentOnPost(self, post_path:str, comment:str, comment_box_xpath):
         """Add comment on a post"""
 
         try:
@@ -142,7 +141,7 @@ class WbAutomator():
         except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
             pass
         
-    def addLikeOnPost(self, post_path, like_button_xpath1, like_button_xpath2):
+    def addLikeOnPost(self, post_path:str, like_button_xpath1, like_button_xpath2):
         """Add like to a post"""
         try:
             WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
@@ -161,7 +160,7 @@ class WbAutomator():
                 pass
             
 
-    def addPageFollowing(self, page_path, follow_button_xpath):
+    def addPageFollowing(self, page_path:str, like_button_xpath, follow_button_xpath):
         """Add following for a page"""
         try:
             
@@ -169,13 +168,17 @@ class WbAutomator():
             if(self.driver.current_url != page_path):
                 self.driver.get(page_path)
             
-            follow_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, follow_button_xpath)))
-            follow_button.click()
+            like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath)))
+            like_button.click()
 
         except TimeoutException as e:
-            pass
+            try:
+                follow_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, follow_button_xpath)))
+                follow_button.click()
+            except:
+                pass
         
-    def addPerson(self, profile_path, add_button_xpath):
+    def addPerson(self, profile_path:str, add_button_xpath):
         """Add person"""
         try:
             
@@ -189,7 +192,7 @@ class WbAutomator():
         except TimeoutException as e:
             pass
     
-    def acceptPerson(self, profile_path, accept_button_xpath1, accept_button_xpath2):
+    def acceptPerson(self, profile_path:str, accept_button_xpath1, accept_button_xpath2):
         """Accept person"""
         try:
             

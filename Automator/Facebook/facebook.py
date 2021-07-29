@@ -3,6 +3,8 @@ This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
 
+from pandas.core.frame import DataFrame
+import selenium
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -21,7 +23,7 @@ from operator import itemgetter
 import emoji
 
 class Facebook(WbAutomator):
-    """Chile class automator"""
+    """Chiled class automator"""
 
     class Inner():
         def __init__(self,func):
@@ -49,7 +51,7 @@ class Facebook(WbAutomator):
             # self.worker_book.close()
 
 
-    def __init__(self, driver_type, accounts_file_path, accounts_data) :
+    def __init__(self, driver_type : str, accounts_file_path : str, accounts_data : DataFrame, comments_data : DataFrame = None) :
         super().__init__(driver_type=driver_type, website="https://www.facebook.com/", logfile_path="./logs/Facebook accounts logout info.log")
 
         self._NEW_ACCOUNT_BUTTON_XPTH = "//a[@role='button' and @class= '_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy']"
@@ -85,7 +87,8 @@ class Facebook(WbAutomator):
         self._LIKE_BUTTON_XPATH2 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span/span"
                                     
         # self._PAGE_FOLLOW_BUTTON_XPATH = "//span[contains(text(),'Like') or contains(text(),'أعجبني')]"
-        self._PAGE_FOLLOW_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[3]/div/div/div/div[2]/div/div/div[1]"
+        self._PAGE_FOLLOW_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[3]/div/div/div/div[2]/div/div/div/div[2]/div/span/div"
+        self._PAGE_LIKE_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[3]/div/div/div/div[2]/div/div/div[1]"
                                             
                                             
         
@@ -105,12 +108,13 @@ class Facebook(WbAutomator):
 
         self.accounts_file_path = accounts_file_path
         self.accounts_data = accounts_data
+        self.comments_data = comments_data
 
         # Edit accounts file
         self.worker_book = openpyxl.load_workbook(self.accounts_file_path)
         self.sheet =  self.worker_book.active
 
-    def signUp(self, first_name, last_name, email, password, date_of_birth, gender):
+    def signUp(self, first_name:str, last_name:str, email:str, password:str, date_of_birth, gender):
         """Sign up for new facebook account"""
         try:
             create_new_account_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._NEW_ACCOUNT_BUTTON_XPTH)))
@@ -160,32 +164,32 @@ class Facebook(WbAutomator):
             return super().logout(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH, self._LOUTGOUT_BUTTON2_XPATH)
         
     
-    def chat(self, message, profile_path):
+    def chat(self, message:str, profile_path:str):
         return super().chat( message, profile_path, self._MESSAGE_BUTTON_XPATH, self._MESSAGE_TEXTBOX_XPATH)
         
     def addCommentOnPost(self, post_path, comment):
         return super().addCommentOnPost(post_path, comment, self._COMMENT_TEXTBOX_XPATH)
 
   
-    def addLikeOnComment(self, post_path):
+    def addLikeOnComment(self, post_path:str):
         return super().addLikeOnComment(post_path, self._VIEW_ALL_COMMETNS_XPATH)
 
     
-    def addLikeOnPost(self, post_path):
+    def addLikeOnPost(self, post_path:str):
         return super().addLikeOnPost(post_path, self._LIKE_BUTTON_XPATH1, self._LIKE_BUTTON_XPATH2)        
         
 
-    def addPageFollowing(self, page_path):
-        return super().addPageFollowing(page_path, self._PAGE_FOLLOW_BUTTON_XPATH)        
+    def addPageFollowing(self, page_path:str):
+        return super().addPageFollowing(page_path, self._PAGE_LIKE_BUTTON_XPATH, self._PAGE_FOLLOW_BUTTON_XPATH)        
 
-    def addPerson(self, profile_path):
+    def addPerson(self, profile_path:str):
         return super().addPerson(profile_path, self._ADD_PERSON_BUTTON_XPATH)
     
-    def acceptPerson(self, profile_path):
+    def acceptPerson(self, profile_path:str):
         return super().acceptPerson(profile_path, self._ACCEPT_PERSON_BUTTON_XPATH1, self._ACCEPT_PERSON_BUTTON_XPATH2)
 
 
-    def countNFreinds(self, profile_path):
+    def countNFreinds(self, profile_path:str):
         """Calculate the number of friends for specific profile"""
         WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))  
         self.driver.get(profile_path)
