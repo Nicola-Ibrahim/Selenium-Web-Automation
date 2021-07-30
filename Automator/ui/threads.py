@@ -12,6 +12,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
     # Signal to be emited if there any error
     # it sends the account name and his index
     run_error = QtCore.pyqtSignal(int, str)
+    passed_acc_counter = QtCore.pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
         super().__init__(parent=parent)
@@ -22,7 +23,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
 
     def run(self):
         try:
-            
+            counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
                 # start = time.perf_counter()
 
@@ -35,10 +36,13 @@ class LikesOnPostUIWorker(QtCore.QThread):
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
                     self.facebook.logout()
+                    counter +=1
+                    self.passed_acc_counter.emit(counter)
 
                 else:
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
+
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")

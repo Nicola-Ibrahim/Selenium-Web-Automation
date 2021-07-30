@@ -22,6 +22,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.comments_data = None
         self.driver_type = None
 
+       
         self.facebook_accounts_sort_model = None
         
         self.setupUi(self)
@@ -33,7 +34,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
     
         """UI close envet handler"""
-
+        
 
         reply = QtWidgets.QMessageBox.question(
             self,
@@ -82,6 +83,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.num_of_workers_txt2.setText('1')
         self.num_of_workers_txt3.setText('1')
         self.num_of_workers_txt4.setText('1')
+
+        self.comments_counter_lbl.setText('0')
+        self.likes_counter_lbl.setText('0')
+        self.comments_likes_counter_lbl.setText('0')
+        self.page_followings_counter_lbl.setText('0')
 
     def handleButtons(self):
         self.facebook_comments_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame')))
@@ -282,11 +288,13 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             
             worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
+            worker.passed_acc_counter.connect(lambda count: self.likes_counter_lbl.setText(count))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
+            worker.finished.connect(lambda : self.likes_counter_lbl.setText('0'))
             
             worker.start()
 
@@ -559,7 +567,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if(reg.match(self.accounts_file_path).hasMatch()):
             try:
                 self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
-                print
+                
+                
                 # Reinialize values in text boxes
                 self.initialValues()
 
@@ -600,10 +609,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get the file path
         if(self.comments_file_path in (None, '')):
+            print('yes')
             self.comments_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
                         directory = self.settings.value('facebook_comments_file_path'),filter="XLSX files (*.xlsx)")
             
-            self.settings.setValue('facebook_commnets_file_path', self.comments_file_path)
+            self.settings.setValue('facebook_comments_file_path', self.comments_file_path)
             
         # check if the file extension is an Excel file
         reg = QtCore.QRegularExpression("\.xlsx$")
