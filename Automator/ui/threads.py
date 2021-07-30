@@ -1,10 +1,8 @@
 from itertools import combinations, groupby, permutations
 from operator import itemgetter
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
-from PyQt5 import QtCore
 from Automator.Facebook.facebook import Facebook
-
-import random
+from PyQt5 import QtCore
 import emoji
 
 class LikesOnPostUIWorker(QtCore.QThread):
@@ -349,7 +347,6 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
      
-
 class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
     """A thread responsible for putting likes and comments on the friend post"""
     

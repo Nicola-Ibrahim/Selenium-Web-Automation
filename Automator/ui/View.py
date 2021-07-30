@@ -1,8 +1,6 @@
 
 import numpy as np
 import pandas as pd
-import random
-import re
 
 from Automator.ui.model import FacebookAccountsModel, FacebookAccountsSortoModel
 from Automator.ui.threads import AddMulitpleFriendsWorker, CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
@@ -16,13 +14,13 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self,parent)
 
-        self.accounts_file_path = None
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+
+        self.accounts_file_path = self.settings.value('facebook_accounts_file_path')
         self.accounts_data = None
-        self.comments_file_path = None
+        self.comments_file_path = self.settings.value('facebook_comments_file_path')
         self.comments_data = None
         self.driver_type = None
-        
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
 
         self.facebook_accounts_sort_model = None
         
@@ -35,8 +33,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
     
         """UI close envet handler"""
-        self.settings.setValue('facebook_file_path', self.accounts_file_path)
-        self.settings.setValue('comments_file_path', self.comments_file_path)
+
 
         reply = QtWidgets.QMessageBox.question(
             self,
@@ -550,25 +547,16 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def readAccountDataFile(self):
         """Read accounts data file"""
 
-        if(self.accounts_data != None):
-            self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
-                
-            # Reinialize values in text boxes
-            self.initialValues()
+        # get the file path if it is not known
+        if(self.accounts_file_path in (None, '')):
+            self.accounts_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
+                        directory = self.settings.value('facebook_accounts_file_path'),filter="XLSX files (*.xlsx)")
 
-            # Set accounts groups in group comboBox
-            self.groups_comboBox.clear()
-            self.groups_comboBox.addItems(np.insert(self.accounts_data['group'].unique(), 0 ,'', axis=0))
-            return
+            self.settings.setValue('facebook_accounts_file_path', self.accounts_file_path)
 
-        # get the file path
-        self.accounts_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
-                    directory = self.settings.value('facebook_file_path'),filter="XLSX files (*.xlsx)")
-                
         # check if the file extension is an Excel file
-        reg = re.compile(r"\.xlsx$")
-        
-        if (reg.search(self.accounts_file_path) is not None):
+        reg = QtCore.QRegularExpression("\.xlsx$")
+        if(reg.match(self.accounts_file_path).hasMatch()):
             try:
                 self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
                 print
@@ -587,8 +575,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 text = self.accounts_file_path.split('/')[-1]
                 self.accounts_file_txt.setText(text)
                 self.accounts_file_txt.setStyleSheet("")
-                
-            except ValueError as e:
+
+
+            except ValueError:
                 self.accounts_file_txt.setStyleSheet(
                     "QLineEdit {\n"
                     "    border-width: 4px; \n"
@@ -599,26 +588,27 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     "}\n"
                     )
                 self.accounts_file_txt.setText('')
-                    
+                self.accounts_file_path = None
+                self.readAccountDataFile()    
+
+            except FileNotFoundError:
+                self.accounts_file_path = None
+                self.readAccountDataFile()            
+
     def readCommentsDataFile(self):
         """Read comments data file"""
 
-        if(self.comments_data != None):
-            self.comments_data = pd.read_excel(self.accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
-                
-            # Reinialize values in text boxes
-            self.initialValues()
-
-            return
-
         # get the file path
-        self.comments_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
-                    directory = self.settings.value('comments_file_path'),filter="XLSX files (*.xlsx)")
-                
+        if(self.comments_file_path in (None, '')):
+            self.comments_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
+                        directory = self.settings.value('facebook_comments_file_path'),filter="XLSX files (*.xlsx)")
+            
+            self.settings.setValue('facebook_commnets_file_path', self.comments_file_path)
+            
         # check if the file extension is an Excel file
-        reg = re.compile(r"\.xlsx$")
+        reg = QtCore.QRegularExpression("\.xlsx$")
 
-        if (reg.search(self.comments_file_path) is not None):
+        if (reg.match(self.comments_file_path).hasMatch()):
 
             try: 
                 self.comments_data = pd.read_excel(self.comments_file_path, usecols=['Comments', 'Type'])
@@ -643,7 +633,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.comments_type_comboBox2.addItems(com_type)
                 self.comments_type_comboBox3.addItems(com_type)
 
-            except ValueError as e:
+            except ValueError:
                 self.comments_file_txt.setStyleSheet(
                     "QLineEdit {\n"
                     "    border-width: 4px; \n"
@@ -654,6 +644,12 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     "}\n"
                     )
                 self.comments_file_txt.setText('')
+                self.comments_file_path = None
+                self.readCommentsDataFile()
+
+            except FileNotFoundError:
+                self.comments_file_path = None
+                self.readCommentsDataFile()
 
 
 
