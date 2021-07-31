@@ -1,7 +1,6 @@
+from Automator.ui.windows import Windows
 
-import pandas as pd
-from Automator.ui.View import AutomatorMainWindow
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 import os 
 import sys
 
@@ -20,9 +19,7 @@ def uiMain():
     # Create the application
     app = QtWidgets.QApplication(sys.argv)
 
-    main_win = AutomatorMainWindow()
-    main_win.show()
-
+    Windows()
 
     # Run the event loop
     sys.exit(app.exec_())

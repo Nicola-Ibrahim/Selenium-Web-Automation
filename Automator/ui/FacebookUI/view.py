@@ -2,17 +2,18 @@
 import numpy as np
 import pandas as pd
 
-from Automator.ui.model import FacebookAccountsModel, FacebookAccountsSortoModel
-from Automator.ui.threads import AddMulitpleFriendsWorker, CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
-from Automator.ui.MainUI.ui_Facebook_UI import Ui_MainWindow
+from Automator.ui.FacebookUI.model import FacebookAccountsModel, FacebookAccountsSortoModel
+from Automator.ui.FacebookUI.threads import AddMulitpleFriendsWorker, CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
+from Automator.ui.FacebookUI.ui_Facebook_UI import Ui_MainWindow
 from Automator.WebAutomation import splitting
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None):
+class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self, main_wind, parent=None):
         QtWidgets.QMainWindow.__init__(self,parent)
+        self.main_wind = main_wind
 
         self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
@@ -44,6 +45,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         if reply == QtWidgets.QMessageBox.Yes:
             event.accept()
+            self.main_wind.show()
         else:
             event.ignore()
 
@@ -53,9 +55,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame'))
         
         # Resize tables view header sections into contentes
-        self.facebook_accounts_tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.facebook_accounts_tableView.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
-        self.facebook_accounts_tableView.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
+        self.accounts_tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.accounts_tableView.horizontalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
+        self.accounts_tableView.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
 
 
         self.settings.setValue('start_count', 1)
@@ -66,11 +68,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         r.moveCenter(QtWidgets.QApplication.desktop().availableGeometry().center()) 
         self.setGeometry(r)
 
-        # Read accounts and comments files
-        if(self.accounts_file_path != None or self.comments_file_path != None):
-            self.readAccountDataFile()
-            self.readCommentsDataFile()
-
+        # # Read accounts and comments files
+        # if(self.accounts_data != None or self.comments_data != None):
+        #     self.readAccountDataFile()
+        #     self.readCommentsDataFile()
+        
     def initialValues(self):
         """Initialize values for the text boxes"""
         self.start_acc_range_txt1.setText(str(self.settings.value('start_count')))
@@ -106,7 +108,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.add_likes_run_btn.clicked.connect(self.addLikesOnPostUIRun)
         self.add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnPostUIRun)
         self.add_page_followings_run_btn.clicked.connect(self.addPageFollowingUIRun)
-        self.facebook_groups_add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnFriendPostUIRun)
+        self.groups_add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnFriendPostUIRun)
 
         self.facebook_groups_add_friends_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_add_friends_frame')))
         self.facebook_groups_add_comms_likes_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_likes_comments_frame')))
@@ -118,7 +120,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.load_commetns_file_btn.clicked.connect(self.readCommentsDataFile)
         
         
-        self.facebook_btn.clicked.connect(self.selectfacebookPanel)
+        self.next_btn.clicked.connect(self.facebookPanel)
         # self.instagram_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'instagram_frame')))
 
         
@@ -158,7 +160,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     ####################
     # Facebook Workers #
     ####################
-    def selectfacebookPanel(self):
+    def facebookPanel(self):
         if(self.accounts_data is None):
             self.accounts_file_txt.setFocus()
             QtWidgets.QToolTip.showText(self.accounts_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook accounts file path")
@@ -171,10 +173,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.driver_type = self.driver_type_comboBox.currentText()
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame'))
-
-    def selectInstagramPanel(self):
-        pass
-
+    
     def addCommentsOnPostUIworker(self):
         """Add comments on a post"""
         url = self.post_url_txt1.text()
@@ -488,7 +487,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def dispFacebookAccounts(self):
         self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'accounts_groups_frame'))
         self.facebook_accounts_sort_model = FacebookAccountsSortoModel(FacebookAccountsModel(self.accounts_data))
-        self.facebook_accounts_tableView.setModel(self.facebook_accounts_sort_model)
+        self.accounts_tableView.setModel(self.facebook_accounts_sort_model)
         
         # Change comboBox selected item actions
         self.groups_comboBox1.currentTextChanged['QString'].connect(lambda group_name: self.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
@@ -541,7 +540,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Take commnets data as selected comments type data 
         comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
         
-        self.facebook_groups_add_likes_comments_run_btn.setEnabled(False)
+        self.groups_add_likes_comments_run_btn.setEnabled(False)
 
 
         # Creating threads
@@ -549,7 +548,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Creating instance from the Facebook classs
             
             worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
-            worker.finished.connect(lambda : self.facebook_groups_add_likes_comments_run_btn.setEnabled(True))
+            worker.finished.connect(lambda : self.groups_add_likes_comments_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
             worker.run_error.connect(lambda ind, name : self.run_error_lbl5.setStyleSheet("color: rgb(255,0,0);"))
@@ -593,7 +592,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.accounts_file_txt.setStyleSheet("")
 
 
-            except ValueError:
+            except ValueError as e:
                 self.accounts_file_txt.setStyleSheet(
                     "QLineEdit {\n"
                     "    border-width: 4px; \n"
@@ -607,10 +606,10 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.accounts_file_path = None
                 self.readAccountDataFile()    
 
-            except FileNotFoundError:
+            except FileNotFoundError as e:
                 self.accounts_file_path = None
                 self.readAccountDataFile()            
-
+    
     def readCommentsDataFile(self):
         """Read comments data file"""
 

@@ -800,7 +800,7 @@ Likes</string>
               </size>
              </property>
              <property name="text">
-              <string>Group</string>
+              <string>Groups</string>
              </property>
             </widget>
            </item>
@@ -2304,7 +2304,7 @@ Likes</string>
                     <number>0</number>
                    </property>
                    <item row="2" column="0">
-                    <widget class="QTableView" name="facebook_accounts_tableView"/>
+                    <widget class="QTableView" name="accounts_tableView"/>
                    </item>
                    <item row="0" column="0">
                     <widget class="QFrame" name="frame_30">
@@ -2453,7 +2453,7 @@ Likes</string>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLineEdit" name="facebook_group_num_of_likes_comms_txt">
+                    <widget class="QLineEdit" name="num_of_likes_comms_txt">
                      <property name="minimumSize">
                       <size>
                        <width>90</width>
@@ -2749,7 +2749,7 @@ Likes</string>
                     </spacer>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="facebook_groups_add_likes_comments_run_btn">
+                    <widget class="QPushButton" name="groups_add_likes_comments_run_btn">
                      <property name="minimumSize">
                       <size>
                        <width>200</width>
@@ -2776,7 +2776,6 @@ Likes</string>
        <zorder>stackedWidget</zorder>
        <zorder>frame</zorder>
       </widget>
-      <widget class="QWidget" name="Instagram_frame"/>
       <widget class="QWidget" name="Main_frame">
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="2" column="1">
@@ -3001,7 +3000,7 @@ Likes</string>
                <number>0</number>
               </property>
               <item>
-               <widget class="QPushButton" name="instagram_btn">
+               <widget class="QPushButton" name="next_btn">
                 <property name="minimumSize">
                  <size>
                   <width>200</width>
@@ -3009,20 +3008,7 @@ Likes</string>
                  </size>
                 </property>
                 <property name="text">
-                 <string>Instagram</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="facebook_btn">
-                <property name="minimumSize">
-                 <size>
-                  <width>200</width>
-                  <height>50</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Facebook</string>
+                 <string>Next</string>
                 </property>
                </widget>
               </item>
