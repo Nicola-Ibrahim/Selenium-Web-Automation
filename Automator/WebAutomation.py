@@ -37,10 +37,10 @@ class WbAutomator():
             options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
             options.add_experimental_option("excludeSwitches", ['enable-logging'])
 
-            self.driver = webdriver.Chrome(executable_path='chromedriver_win32/chromedriver.exe', options=options)
+            self.driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
 
         elif(driver_type == 'Firefox'):
-            self.driver = webdriver.Firefox(executable_path='geckodriver-v0.29.1-win64/geckodriver.exe')
+            self.driver = webdriver.Firefox(executable_path='geckodriver.exe')
             
         self.website = website
         self.waiting_time = 10

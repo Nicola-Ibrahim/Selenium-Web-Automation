@@ -121,7 +121,7 @@ class CommentsOnPostWorker(QtCore.QThread):
     # it sends the account name and his index
     run_error = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
@@ -177,7 +177,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
     # it sends the account name and his index
     run_error = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
