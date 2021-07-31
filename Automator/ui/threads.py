@@ -9,9 +9,11 @@ class LikesOnPostUIWorker(QtCore.QThread):
     """A thread responsible for putting likes of post"""
 
     
-    # Signal to be emited if there any error
-    # it sends the account name and his index
+    ### Signals to be emited if there any error occures
+    # Sends the account name and his index 
     run_error = QtCore.pyqtSignal(int, str)
+    
+    # Sends number of passed accounts that work
     passed_acc_counter = QtCore.pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
@@ -64,9 +66,12 @@ class LikesOnPostUIWorker(QtCore.QThread):
 class PageFollowingUIWorker(QtCore.QThread):
     """A thread responsible for putting following for page"""
 
-    # Signal to be emited if there any error
-    # it sends the account name and his index
+    ### Signals to be emited if there any error occures
+    # Sends the account name and his index 
     run_error = QtCore.pyqtSignal(int, str)
+    
+    # Sends number of passed accounts that work
+    passed_acc_counter = QtCore.pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
         super().__init__(parent=parent)
@@ -117,9 +122,12 @@ class PageFollowingUIWorker(QtCore.QThread):
 class CommentsOnPostWorker(QtCore.QThread):
     """A thread responsible for putting comments on post"""
     
-    # Signal to be emited if there any error
-    # it sends the account name and his index
+    ### Signals to be emited if there any error occures
+    # Sends the account name and his index 
     run_error = QtCore.pyqtSignal(int, str)
+    
+    # Sends number of passed accounts that work
+    passed_acc_counter = QtCore.pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
@@ -172,9 +180,12 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
     """A thread responsible for putting likes and comments on post"""
     
     
-    # Signal to be emited if there any error
-    # it sends the account name and his index
+    ### Signals to be emited if there any error occures
+    # Sends the account name and his index 
     run_error = QtCore.pyqtSignal(int, str)
+    
+    # Sends number of passed accounts that work
+    passed_acc_counter = QtCore.pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
@@ -354,9 +365,12 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
     """A thread responsible for putting likes and comments on the friend post"""
     
     
-    # Signal to be emited if there any error
-    # it sends the account name and his index
+    ### Signals to be emited if there any error occures
+    # Sends the account name and his index 
     run_error = QtCore.pyqtSignal(int, str)
+    
+    # Sends number of passed accounts that work
+    passed_acc_counter = QtCore.pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)

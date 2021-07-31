@@ -67,8 +67,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setGeometry(r)
 
         # Read accounts and comments files
-        self.readAccountDataFile()
-        self.readCommentsDataFile()
+        if(self.accounts_file_path != None or self.comments_file_path != None):
+            self.readAccountDataFile()
+            self.readCommentsDataFile()
 
     def initialValues(self):
         """Initialize values for the text boxes"""
@@ -615,7 +616,6 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get the file path
         if(self.comments_file_path in (None, '')):
-            print('yes')
             self.comments_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
                         directory = self.settings.value('facebook_comments_file_path'),filter="XLSX files (*.xlsx)")
             
