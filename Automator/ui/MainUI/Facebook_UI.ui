@@ -851,7 +851,7 @@ Likes</string>
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>4</number>
           </property>
           <widget class="QWidget" name="comments_frame">
            <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -2284,7 +2284,7 @@ Likes</string>
             <item>
              <widget class="QStackedWidget" name="accounts_groups_stackedWidget">
               <property name="currentIndex">
-               <number>0</number>
+               <number>1</number>
               </property>
               <widget class="QWidget" name="acc_groups_add_friends_frame">
                <layout class="QHBoxLayout" name="horizontalLayout_30">
@@ -2506,7 +2506,7 @@ Likes</string>
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="run_error_lbl3_2">
+                    <widget class="QLabel" name="run_error_lbl5">
                      <property name="text">
                       <string/>
                      </property>

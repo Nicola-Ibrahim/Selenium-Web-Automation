@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIlNpHlt.ui'
+# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIBAyRAG.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -1304,10 +1304,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_34 = QtWidgets.QHBoxLayout(self.frame_36)
         self.horizontalLayout_34.setContentsMargins(0, -1, 0, -1)
         self.horizontalLayout_34.setObjectName("horizontalLayout_34")
-        self.run_error_lbl3_2 = QtWidgets.QLabel(self.frame_36)
-        self.run_error_lbl3_2.setText("")
-        self.run_error_lbl3_2.setObjectName("run_error_lbl3_2")
-        self.horizontalLayout_34.addWidget(self.run_error_lbl3_2)
+        self.run_error_lbl5 = QtWidgets.QLabel(self.frame_36)
+        self.run_error_lbl5.setText("")
+        self.run_error_lbl5.setObjectName("run_error_lbl5")
+        self.horizontalLayout_34.addWidget(self.run_error_lbl5)
         self.verticalLayout_8.addWidget(self.frame_36)
         self.frame_33 = QtWidgets.QFrame(self.acc_groups_likes_comments_frame)
         self.frame_33.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -1498,8 +1498,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.social_media_stackedWidget.setCurrentIndex(0)
-        self.stackedWidget.setCurrentIndex(0)
-        self.accounts_groups_stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(4)
+        self.accounts_groups_stackedWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

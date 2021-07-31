@@ -19,7 +19,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -73,7 +73,7 @@ class PageFollowingUIWorker(QtCore.QThread):
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -127,7 +127,7 @@ class CommentsOnPostWorker(QtCore.QThread):
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
         # self.comments_data = 
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -171,7 +171,6 @@ class CommentsOnPostWorker(QtCore.QThread):
 class Likes_CommentsOnPostWorker(QtCore.QThread):
     """A thread responsible for putting likes and comments on post"""
     
-    run_error = QtCore.pyqtSignal(int, str)
     
     # Signal to be emited if there any error
     # it sends the account name and his index
@@ -182,7 +181,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -239,7 +238,7 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.method = method
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         
@@ -310,7 +309,7 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
     
@@ -364,7 +363,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
-        self.settings = QtCore.QSettings('BANG_team', 'WebAutomation')
+        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:

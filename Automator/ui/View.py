@@ -65,7 +65,11 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         r = self.geometry()
         r.moveCenter(QtWidgets.QApplication.desktop().availableGeometry().center()) 
         self.setGeometry(r)
-   
+
+        # Read accounts and comments files
+        self.readAccountDataFile()
+        self.readCommentsDataFile()
+
     def initialValues(self):
         """Initialize values for the text boxes"""
         self.start_acc_range_txt1.setText(str(self.settings.value('start_count')))
@@ -83,6 +87,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.num_of_workers_txt2.setText('1')
         self.num_of_workers_txt3.setText('1')
         self.num_of_workers_txt4.setText('1')
+        self.num_of_workers_txt5.setText('1')
 
         self.comments_counter_lbl.setText('0')
         self.likes_counter_lbl.setText('0')
@@ -100,6 +105,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.add_likes_run_btn.clicked.connect(self.addLikesOnPostUIRun)
         self.add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnPostUIRun)
         self.add_page_followings_run_btn.clicked.connect(self.addPageFollowingUIRun)
+        self.facebook_groups_add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnFriendPostUIRun)
 
         self.facebook_groups_add_friends_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_add_friends_frame')))
         self.facebook_groups_add_comms_likes_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_likes_comments_frame')))
@@ -154,12 +160,12 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def selectfacebookPanel(self):
         if(self.accounts_data is None):
             self.accounts_file_txt.setFocus()
-            QtWidgets.QToolTip.showText(self.accounts_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter url")
+            QtWidgets.QToolTip.showText(self.accounts_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook accounts file path")
             return
 
         elif(self.comments_data is None):
             self.comments_file_txt.setFocus()
-            QtWidgets.QToolTip.showText(self.comments_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter url")
+            QtWidgets.QToolTip.showText(self.comments_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook comments file path")
             return
         
         self.driver_type = self.driver_type_comboBox.currentText()
@@ -193,13 +199,13 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
         
         elif(num_of_workers == ''):
-            self.num_of_workers_txt2.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            self.num_of_workers_txt1.setFocus()
+            QtWidgets.QToolTip.showText(self.num_of_workers_txt1.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
         
         elif(comments_type == ''):
-            self.comments_type_comboBox1.currentText.setFocus()
-            QtWidgets.QToolTip.showText(self.comments_type_comboBox1.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter comments type")
+            self.comments_type_comboBox1.setFocus()
+            QtWidgets.QToolTip.showText(self.comments_type_comboBox1.mapToGlobal(QtCore.QPoint(0,10)),"Enter comments type")
             return
 
         start_num = int(start_num) - 1
@@ -329,8 +335,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
 
         elif(comments_type == ''):
-            self.comments_type_comboBox2.currentText.setFocus()
-            QtWidgets.QToolTip.showText(self.comments_type_comboBox2.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            self.comments_type_comboBox2.setFocus()
+            QtWidgets.QToolTip.showText(self.comments_type_comboBox2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
         start_num = int(start_num) -1 
@@ -514,15 +520,16 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
 
         elif(comments_type == ''):
-            self.comments_type_comboBox3.currentText.setFocus()
-            QtWidgets.QToolTip.showText(self.comments_type_comboBox3.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            self.comments_type_comboBox3.setFocus()
+            QtWidgets.QToolTip.showText(self.comments_type_comboBox3.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
         
         elif(accounts_group == ''):
-            self.groups_comboBox2.currentText.setFocus()
-            QtWidgets.QToolTip.showText(self.groups_comboBox2.currentText.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
+            self.groups_comboBox2.setFocus()
+            QtWidgets.QToolTip.showText(self.groups_comboBox2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
+        num_of_comments = int(num_of_comments)
         num_of_workers = int(num_of_workers)
 
 
@@ -533,7 +540,7 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Take commnets data as selected comments type data 
         comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
         
-        self.add_likes_comments_run_btn.setEnabled(False)
+        self.facebook_groups_add_likes_comments_run_btn.setEnabled(False)
 
 
         # Creating threads
@@ -544,8 +551,8 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worker.finished.connect(lambda : self.facebook_groups_add_likes_comments_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
-            worker.run_error.connect(lambda ind, name : self.run_error_lbl3.setStyleSheet("color: rgb(255,0,0);"))
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl3.setText(f"Error occured at -> {ind} : {name}"))
+            worker.run_error.connect(lambda ind, name : self.run_error_lbl5.setStyleSheet("color: rgb(255,0,0);"))
+            worker.run_error.connect(lambda ind, name: self.run_error_lbl5.setText(f"Error occured at -> {ind} : {name}"))
             
             worker.start()
   
@@ -574,10 +581,9 @@ class AutomatorMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
                 # Set accounts groups in group comboBox
-                self.groups_comboBox1.clear()
-                self.groups_comboBox2.clear()
-                self.groups_comboBox1.addItems(np.insert(self.accounts_data['group'].unique(),0 ,'', axis=0))
-                self.groups_comboBox2.addItems(np.insert(self.accounts_data['group'].unique(),0 ,'', axis=0))
+                for groups in (self.groups_comboBox1, self.groups_comboBox2):
+                    groups.clear()
+                    groups.addItems(np.insert(self.accounts_data['group'].unique(),0 ,'', axis=0))
 
                 # Set file path in text boxes and
                 # change accounts file path text boxes properties
