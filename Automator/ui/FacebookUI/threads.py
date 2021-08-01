@@ -19,6 +19,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
     def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
         super().__init__(parent=parent)
 
+        
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
@@ -31,6 +32,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
+                self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
                 if(self.facebook.isProfileActive()):
@@ -48,14 +50,14 @@ class LikesOnPostUIWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-                self.settings.setValue('start_count', ind+1)
+                
             
-            self.settings.setValue('start_count', 1)
                  
-        except (NoSuchWindowException, WebDriverException) as e:
+        except (NoSuchWindowException, WebDriverException):
             self.run_error.emit(ind + 1, row['Full name'])
         
         else:
+            self.settings.setValue('current_acc_ind', 1)
             self.facebook.driver.close()
             
         finally:
@@ -88,6 +90,7 @@ class PageFollowingUIWorker(QtCore.QThread):
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
+                self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
                 if(self.facebook.isProfileActive()):
@@ -103,17 +106,14 @@ class PageFollowingUIWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
-                self.settings.setValue('start_count', ind+1)
-            
-            self.settings.setValue('start_count', 1)
-
-            
             
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(ind + 1, row['Full name'])
         
         else:
+            self.settings.setValue('current_acc_ind', 1)
             self.facebook.driver.close()
+
         finally:
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
@@ -134,7 +134,6 @@ class CommentsOnPostWorker(QtCore.QThread):
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
-        # self.comments_data = 
         self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
 
     def run(self):
@@ -144,6 +143,7 @@ class CommentsOnPostWorker(QtCore.QThread):
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
+                self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
                 if(self.facebook.isProfileActive()):
@@ -159,9 +159,7 @@ class CommentsOnPostWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-                self.settings.setValue('start_count', ind+1)
             
-            self.settings.setValue('start_count', 1)
 
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
@@ -170,7 +168,9 @@ class CommentsOnPostWorker(QtCore.QThread):
             self.run_error.emit(ind + 1, row['Full name'])
         
         else:
+            self.settings.setValue('current_acc_ind', 1)
             self.facebook.driver.close()
+
         finally:
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
@@ -201,6 +201,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
+                self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
                 if(self.facebook.isProfileActive()):
@@ -216,9 +217,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-                self.settings.setValue('start_count', ind+1)
             
-            self.settings.setValue('start_count', 1)
 
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
@@ -227,6 +226,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
             self.run_error.emit(ind + 1, row['Full name'])
         
         else:
+            self.settings.setValue('current_acc_ind', 1)
             self.facebook.driver.close()
             
         finally:
@@ -386,6 +386,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
+                self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
                 if(self.facebook.isProfileActive()):
@@ -401,9 +402,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-                self.settings.setValue('start_count', ind+1)
             
-            self.settings.setValue('start_count', 1)
 
             self.facebook.worker_book.save(self.facebook.accounts_file_path)
             self.facebook.worker_book.close()
@@ -412,6 +411,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
             self.run_error.emit(ind + 1, row['Full name'])
         
         else:
+            self.settings.setValue('current_acc_ind', 1)
             self.facebook.driver.close()
             
         finally:

@@ -60,7 +60,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.accounts_tableView.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
 
 
-        self.settings.setValue('start_count', 1)
+        self.settings.setValue('current_acc_ind', 1)
 
         # self.group_btn.hide()
         # Centrize the dialog
@@ -75,10 +75,10 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
     def initialValues(self):
         """Initialize values for the text boxes"""
-        self.start_acc_range_txt1.setText(str(self.settings.value('start_count')))
-        self.start_acc_range_txt2.setText(str(self.settings.value('start_count')))
-        self.start_acc_range_txt3.setText(str(self.settings.value('start_count')))
-        self.start_acc_range_txt4.setText(str(self.settings.value('start_count')))
+        self.start_acc_range_txt1.setText(str(self.settings.value('current_acc_ind')))
+        self.start_acc_range_txt2.setText(str(self.settings.value('current_acc_ind')))
+        self.start_acc_range_txt3.setText(str(self.settings.value('current_acc_ind')))
+        self.start_acc_range_txt4.setText(str(self.settings.value('current_acc_ind')))
 
         if(self.accounts_data is not None):
             self.end_acc_range_txt1.setText(str(self.accounts_data.shape[0]))
@@ -235,6 +235,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
+            worker.passed_acc_counter.connect(lambda count: self.comments_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl1.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl1.setText(f"Error occured at -> {ind} : {name}"))
             
@@ -294,7 +295,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             
             worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
-            worker.passed_acc_counter.connect(lambda count: self.likes_counter_lbl.setText(count))
+            worker.passed_acc_counter.connect(lambda count: self.likes_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
@@ -363,6 +364,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Creating instance from the Facebook classs
             
             worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            worker.passed_acc_counter.connect(lambda count: self.comments_likes_counter_lbl.setText(f"{count}"))
             worker.finished.connect(lambda : self.add_likes_comments_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
@@ -424,6 +426,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.finished.connect(lambda : self.run_btn4.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
+            worker.passed_acc_counter.connect(lambda count: self.page_followings_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl4.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl4.setText(f"Error occured at -> {ind} : {name}"))
             
@@ -551,6 +554,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worker.finished.connect(lambda : self.groups_add_likes_comments_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
+            worker.passed_acc_counter.connect(lambda count: self.groups_likes_comments_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl5.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl5.setText(f"Error occured at -> {ind} : {name}"))
             

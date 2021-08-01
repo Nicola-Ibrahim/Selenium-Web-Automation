@@ -50,7 +50,7 @@ class WbAutomator():
 
         # Navigate to specific website
         self.driver.get(self.website)
-
+       
 
     def initLogger(self, path:str):
         """Intial new logger

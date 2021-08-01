@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIMhZovo.ui'
+# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIACOqZZ.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -1281,8 +1281,8 @@ class Ui_MainWindow(object):
         self.frame_34.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_34.setObjectName("frame_34")
         self.horizontalLayout_32 = QtWidgets.QHBoxLayout(self.frame_34)
-        self.horizontalLayout_32.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_32.setSpacing(0)
+        self.horizontalLayout_32.setContentsMargins(0, 11, 0, 11)
+        self.horizontalLayout_32.setSpacing(7)
         self.horizontalLayout_32.setObjectName("horizontalLayout_32")
         self.label_30 = QtWidgets.QLabel(self.frame_34)
         self.label_30.setMinimumSize(QtCore.QSize(400, 50))
@@ -1296,6 +1296,21 @@ class Ui_MainWindow(object):
         spacerItem20 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_32.addItem(spacerItem20)
         self.verticalLayout_8.addWidget(self.frame_34)
+        self.frame_24 = QtWidgets.QFrame(self.acc_groups_likes_comments_frame)
+        self.frame_24.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_24.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_24.setObjectName("frame_24")
+        self.horizontalLayout_20 = QtWidgets.QHBoxLayout(self.frame_24)
+        self.horizontalLayout_20.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_20.setObjectName("horizontalLayout_20")
+        self.label_24 = QtWidgets.QLabel(self.frame_24)
+        self.label_24.setObjectName("label_24")
+        self.horizontalLayout_20.addWidget(self.label_24)
+        self.groups_likes_comments_counter_lbl = QtWidgets.QLabel(self.frame_24)
+        self.groups_likes_comments_counter_lbl.setText("")
+        self.groups_likes_comments_counter_lbl.setObjectName("groups_likes_comments_counter_lbl")
+        self.horizontalLayout_20.addWidget(self.groups_likes_comments_counter_lbl)
+        self.verticalLayout_8.addWidget(self.frame_24)
         self.frame_36 = QtWidgets.QFrame(self.acc_groups_likes_comments_frame)
         self.frame_36.setMinimumSize(QtCore.QSize(0, 50))
         self.frame_36.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -1554,6 +1569,7 @@ class Ui_MainWindow(object):
         self.label_28.setText(_translate("MainWindow", "ADD COMMENTS and LIKES on fiends post"))
         self.post_url_txt5.setPlaceholderText(_translate("MainWindow", "Enter post url"))
         self.label_30.setText(_translate("MainWindow", "Number of likes and comments"))
+        self.label_24.setText(_translate("MainWindow", "Num of passed accounts:"))
         self.label_29.setText(_translate("MainWindow", "# of worker"))
         self.label_34.setText(_translate("MainWindow", "Comments Type"))
         self.label_32.setText(_translate("MainWindow", "Account group"))
