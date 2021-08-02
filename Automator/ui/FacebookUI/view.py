@@ -152,6 +152,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.num_of_workers_txt2.setValidator(validator)
         self.num_of_workers_txt3.setValidator(validator)
         self.num_of_workers_txt4.setValidator(validator)
+        self.num_of_workers_txt5.setValidator(validator)
 
         # Set validation for checking url values
         # validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('(https://www.)*(\w+)(.[a-zA-Z]{1,3})(\/[ء-يa-zA-Z0-9\.-=?_&#]*)*'))
@@ -542,11 +543,13 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worker.start()
     
     def updateGroup(self):
-
+        """Updating group comboBox by capturing the account id from a url"""
         reg = QtCore.QRegularExpression("&id=\d+")
-        match = reg.match(self.post_url_txt5.text()).capturedTexts()[-1][1:]
-        group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'group'].values[0]
-        self.groups_comboBox2.setCurrentText(group)
+        match = reg.match(self.post_url_txt5.text()).capturedTexts()
+        if(match):
+            match = match[-1][1:]
+            group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'group'].values[0]
+            self.groups_comboBox2.setCurrentText(group)
     
 
 
