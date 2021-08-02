@@ -738,7 +738,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
-            <widget class="QPushButton" name="facebook_comments_btn">
+            <widget class="QPushButton" name="comments_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -751,7 +751,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="facebook_likes_btn">
+            <widget class="QPushButton" name="likes_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -764,7 +764,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="facebook_comm_likes_btn">
+            <widget class="QPushButton" name="comments_likes_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -779,7 +779,7 @@ Likes</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="facebook_page_following_btn">
+            <widget class="QPushButton" name="page_following_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -792,7 +792,7 @@ Likes</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="facebook_group_btn">
+            <widget class="QPushButton" name="groups_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -818,7 +818,7 @@ Likes</string>
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="facebook_return_btn1">
+            <widget class="QPushButton" name="return_btn">
              <property name="minimumSize">
               <size>
                <width>200</width>
@@ -2238,7 +2238,7 @@ Likes</string>
                 <number>0</number>
                </property>
                <item>
-                <widget class="QPushButton" name="facebook_groups_add_friends_btn">
+                <widget class="QPushButton" name="groups_friends_btn">
                  <property name="minimumSize">
                   <size>
                    <width>100</width>
@@ -2246,12 +2246,12 @@ Likes</string>
                   </size>
                  </property>
                  <property name="text">
-                  <string>Add Friends</string>
+                  <string>Friends</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="facebook_groups_add_comms_likes_btn">
+                <widget class="QPushButton" name="groups_comms_likes_btn">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
@@ -2284,7 +2284,7 @@ Likes</string>
             <item>
              <widget class="QStackedWidget" name="accounts_groups_stackedWidget">
               <property name="currentIndex">
-               <number>1</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="acc_groups_add_friends_frame">
                <layout class="QHBoxLayout" name="horizontalLayout_30">

@@ -96,35 +96,40 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.likes_counter_lbl.setText('0')
         self.comments_likes_counter_lbl.setText('0')
         self.page_followings_counter_lbl.setText('0')
+        self.groups_likes_comments_counter_lbl.setText('0')
 
     def handleButtons(self):
-        self.facebook_comments_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame')))
-        self.facebook_likes_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'likes_frame')))
-        self.facebook_comm_likes_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_likes_frame')))
-        self.facebook_page_following_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'page_following_frame')))
-        self.facebook_group_btn.clicked.connect(self.dispFacebookAccounts)
 
+        # Panels buttons
+        self.comments_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame')))
+        self.likes_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'likes_frame')))
+        self.comments_likes_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_likes_frame')))
+        self.page_following_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'page_following_frame')))
+        self.groups_friends_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_add_friends_frame')))
+        self.groups_comms_likes_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_likes_comments_frame')))
+
+        self.groups_btn.clicked.connect(self.dispFacebookAccounts)
+
+        # Run buttons
         self.add_comments_run_btn.clicked.connect(self.addCommentsOnPostUIworker)
         self.add_likes_run_btn.clicked.connect(self.addLikesOnPostUIRun)
         self.add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnPostUIRun)
         self.add_page_followings_run_btn.clicked.connect(self.addPageFollowingUIRun)
         self.groups_add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnFriendPostUIRun)
+        self.add_friendship_run_btn.clicked.connect(self.addMulitpleFriendsUIRun)
 
-        self.facebook_groups_add_friends_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_add_friends_frame')))
-        self.facebook_groups_add_comms_likes_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_likes_comments_frame')))
+       
         
-        # load accounts file action buttons
+        # load accounts buttons
         self.load_accounts_file_btn.clicked.connect(self.readAccountDataFile)
-        
-        # load comments file action buttons
         self.load_commetns_file_btn.clicked.connect(self.readCommentsDataFile)
         
         
         self.next_btn.clicked.connect(self.facebookPanel)
-        # self.instagram_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'instagram_frame')))
 
-        
-        self.facebook_return_btn1.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
+        self.return_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
+
+        self.post_url_txt5.textChanged['QString'].connect(self.updateGroup)
 
     def regexValidation(self):
         """Apply regular expression to some UI elements"""
@@ -155,6 +160,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.post_url_txt2.setValidator(validator)
         self.post_url_txt3.setValidator(validator)
         self.page_url_txt4.setValidator(validator)
+        self.post_url_txt5.setValidator(validator)
 
     
     ####################
@@ -435,55 +441,30 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def addMulitpleFriendsUIRun(self):
         """Add friends"""
        
-        start_num = self.start_acc_range_txt4.text()
-        end_num = self.end_acc_range_txt4.text()
-        num_of_workers = self.num_of_workers_txt4.text()
+        accounts_group = self.groups_comboBox1.currentText()
 
         # Check if any of the texts is empty
-        
-        
-        if(self.accounts_data is None):
-            self.accounts_file_txt4.setFocus()
-            QtWidgets.QToolTip.showText(self.accounts_file_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter url")
+        if(accounts_group == ''):
+            self.groups_comboBox1.setFocus()
+            QtWidgets.QToolTip.showText(self.groups_comboBox1.mapToGlobal(QtCore.QPoint(0,10)),"Select a group")
             return
 
-        
-        elif(start_num == ''):
-            self.start_acc_range_txt4.setFocus()
-            QtWidgets.QToolTip.showText(self.start_acc_range_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter start number")
-            return
-        
-        elif(end_num == ''):
-            self.end_acc_range_txt4.setFocus()
-            QtWidgets.QToolTip.showText(self.end_acc_range_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter end number")
-            return
-        
-        elif(num_of_workers == ''):
-            self.num_of_workers_txt4.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
-            return
 
-        start_num = int(start_num) - 1
-        end_num = int(end_num)
-
-        if(end_num <= start_num):
-            self.end_acc_range_txt4.setFocus()
-            QtWidgets.QToolTip.showText(self.end_acc_range_txt4.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
-            return
-
-        num_of_workers = int(num_of_workers)
+        # split accounts data frame into subsets depending on the number of threads
+        accounts_data_splits = self.accounts_data[self.accounts_data['group']==accounts_group]
+        
 
         self.add_friendship_run_btn.setEnabled(False)
 
 
         # Creating threads
-        for i in range(num_of_workers):
+        for i in range(1):
             
-            worker = AddMulitpleFriendsWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
+            worker = AddMulitpleFriendsWorker(self.driver_type, self.accounts_file_path, accounts_data_splits, self)
             worker.finished.connect(lambda : self.add_friendship_run_btn.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
-            worker.run_error.connect(lambda ind, name : self.run_error_lbl4.setStyleSheet("color: rgb(255,0,0);"))
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl4.setText(f"Error occured at -> {ind} : {name}"))
+            # worker.run_error.connect(lambda ind, name : self.run_error_lbl4.setStyleSheet("color: rgb(255,0,0);"))
+            # worker.run_error.connect(lambda ind, name: self.run_error_lbl4.setText(f"Error occured at -> {ind} : {name}"))
             
             worker.start()
 
@@ -499,7 +480,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def addLikes_CommentsOnFriendPostUIRun(self):
         """Add likes and comments on a post"""
         url = self.post_url_txt5.text()
-        num_of_comments = self.facebook_group_num_of_likes_comms_txt.text()
+        num_of_comments = self.num_of_likes_comms_txt.text()
         num_of_workers = self.num_of_workers_txt5.text()
         comments_type = self.comments_type_comboBox3.currentText()
         accounts_group = self.groups_comboBox2.currentText()
@@ -512,8 +493,8 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
 
         elif(num_of_comments == ''):
-            self.num_of_workers_txt5.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt5.mapToGlobal(QtCore.QPoint(0,10)),"Enter start number")
+            self.num_of_likes_comms_txt.setFocus()
+            QtWidgets.QToolTip.showText(self.num_of_likes_comms_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter start number")
             return
         
       
@@ -559,7 +540,16 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             worker.run_error.connect(lambda ind, name: self.run_error_lbl5.setText(f"Error occured at -> {ind} : {name}"))
             
             worker.start()
-  
+    
+    def updateGroup(self):
+
+        reg = QtCore.QRegularExpression("&id=\d+")
+        match = reg.match(self.post_url_txt5.text()).capturedTexts()[-1][1:]
+        group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'group'].values[0]
+        self.groups_comboBox2.setCurrentText(group)
+    
+
+
     ###############
     # Read files #
     ##############

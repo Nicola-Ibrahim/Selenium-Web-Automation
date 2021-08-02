@@ -1,13 +1,10 @@
 from selenium.common.exceptions import TimeoutException
-from ..WebAutomation import WbAutomator 
-
-import logging
-from time import time
-
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
+from Automator.WebAutomation import WbAutomator 
+import logging
 
 
 class Instagram(WbAutomator):
@@ -77,15 +74,3 @@ class Instagram(WbAutomator):
 
     def addPageFollowing(self, page_path):
         return super().addPageFollowing(page_path, self._FOLLOW_BUTTON_XPATH)        
-
-
-    def addPageFollowingWorker(self, accounts_data, page_path):
-        
-        for _, row in accounts_data.iterrows():
-            start = time.perf_counter()
-
-            self.login(email=row['email'], password=row['password2'])
-            self.addPageFollowing(page_path=page_path)
-            self.logout()
-            finish = time.perf_counter()
-            self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")

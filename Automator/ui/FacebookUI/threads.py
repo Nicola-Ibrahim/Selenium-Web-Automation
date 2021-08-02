@@ -84,7 +84,7 @@ class PageFollowingUIWorker(QtCore.QThread):
 
     def run(self):
         try:
-            
+            counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
                 # start = time.perf_counter()
 
@@ -98,7 +98,8 @@ class PageFollowingUIWorker(QtCore.QThread):
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addPageFollowing(self.url)
                     self.facebook.logout()
-
+                    counter +=1
+                    self.passed_acc_counter.emit(counter)
                 else:
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
@@ -138,6 +139,7 @@ class CommentsOnPostWorker(QtCore.QThread):
 
     def run(self):
         try:
+            counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
                 # start = time.perf_counter()
 
@@ -150,9 +152,9 @@ class CommentsOnPostWorker(QtCore.QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
-                    # self.facebook.addCommentOnPost(self.url, emoji.emojize('رائع:heart_eyes::heart_eyes:', use_aliases=True))
                     self.facebook.logout()
-
+                    counter +=1
+                    self.passed_acc_counter.emit(counter)
                 else:
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
@@ -161,8 +163,6 @@ class CommentsOnPostWorker(QtCore.QThread):
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
 
-            self.facebook.worker_book.save(self.facebook.accounts_file_path)
-            self.facebook.worker_book.close()
             
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(ind + 1, row['Full name'])
@@ -196,6 +196,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
 
     def run(self):
         try:
+            counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
                 # start = time.perf_counter()
 
@@ -210,6 +211,8 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                     self.facebook.addLikeOnPost(self.url)
                     self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
                     self.facebook.logout()
+                    counter +=1
+                    self.passed_acc_counter.emit(counter)
 
                 else:
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
@@ -218,9 +221,6 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
-
-            self.facebook.worker_book.save(self.facebook.accounts_file_path)
-            self.facebook.worker_book.close()
             
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(ind + 1, row['Full name'])
@@ -239,7 +239,7 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
 
     run_error = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, driver_type, accounts_file_path, accounts_data, method, parent) :
+    def __init__(self, driver_type, accounts_file_path, accounts_data, parent, method = 'all') :
         """method : as default 'enhance'
             we can use ('enhanced2', 'all')
             enhanced2 -> it uses combinations to select available accounts for adding for each individual account
@@ -255,7 +255,7 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
         
         try:
             for group in self.facebook.accounts_data['group'].unique():
-                data = self.facebook.accounts_data[self.accounts_data['group']==group].reset_index(drop=True)
+                data = self.facebook.accounts_data[self.facebook.accounts_data['group']==group].reset_index(drop=True)
 
                 if(self.method == 'enhanced2'):
                     comb = list(combinations(data.index.values, r=2))
@@ -381,6 +381,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
 
     def run(self):
         try:
+            counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
                 # start = time.perf_counter()
 
@@ -395,19 +396,17 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
                     self.facebook.addLikeOnPost(self.url)
                     self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
                     self.facebook.logout()
-
+                    counter +=1
+                    self.passed_acc_counter.emit(counter)
                 else:
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+    
             
-
-            self.facebook.worker_book.save(self.facebook.accounts_file_path)
-            self.facebook.worker_book.close()
-            
-        except (NoSuchWindowException, WebDriverException) as e:
+        except (NoSuchWindowException, WebDriverException):
             self.run_error.emit(ind + 1, row['Full name'])
         
         else:

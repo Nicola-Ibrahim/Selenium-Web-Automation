@@ -11,7 +11,7 @@ def facebookMain():
 
 
     profile_path = """any profile path"""
-    post_path = """https://www.facebook.com/ali.yhya.5283/posts/2886091058312986"""
+    post_path = """any profile path"""
     page_path = """any page path"""
 
 
