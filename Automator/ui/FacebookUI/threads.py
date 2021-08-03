@@ -254,49 +254,36 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
     def run(self):
         
         try:
-            for group in self.facebook.accounts_data['group'].unique():
-                data = self.facebook.accounts_data[self.facebook.accounts_data['group']==group].reset_index(drop=True)
+            for group in self.facebook.accounts_data['Group'].unique():
+                data = self.facebook.accounts_data[self.facebook.accounts_data['Group']==group]
 
                 if(self.method == 'enhanced2'):
-                    comb = list(combinations(data.index.values, r=2))
-                    indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
-
-                    for key in indices.keys():
-                        self.facebook.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
-                        
-                        if(self.facebook.isProfileActive()):
-                            self.facebook.sheet.cell(key + 2, 8).value = 'Active'
-                            self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
-                        
-                            for val in indices[key]:
-                                self.facebook.addPerson(profile_path=data.loc[val,'Profile path'])
-                        
-                            self.facebook.logout()
-
-                        else:
-                            self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
-                            self.facebook.logout(active_acc=False)
-
+                    indices_tree = list(combinations(data.index.values, r=2))
                 elif(self.method == 'all'):
-                    perm = list(permutations(data.index.values, r=2))
-                    indices = {key: [val for _, val in values] for key, values in groupby(perm, itemgetter(0))}
+                    indices_tree = list(permutations(data.index.values, r=2))
 
-                    for key in indices.keys():
-                        self.facebook.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
-                        
-                        if(self.facebook.isProfileActive()):
-                            self.facebook.sheet.cell(key + 2, data.columns.get_loc('Account status')+1).value = 'Active'
-                            self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
-                        
-                            for val in indices[key]:
-                                self.facebook.addPerson(profile_path=data.loc[val,'Profile path'])
-                                self.facebook.acceptPerson(profile_path=data.loc[val,'Profile path'])
-                        
-                            self.facebook.logout()
+                indices = {key: [val for _, val in values] for key, values in groupby(indices_tree, itemgetter(0))}
 
-                        else:
-                            self.facebook.sheet.cell(key + 2, data.columns.get_loc('Account status')+1).value = 'Inactive'
-                            self.facebook.logout(active_acc=False)
+                for key in indices.keys():
+                    self.facebook.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                    
+                    if(self.facebook.isProfileActive()):
+                        self.facebook.sheet.cell(key + 2, 8).value = 'Active'
+                        self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
+
+                        ids = []
+                        for val in indices[key]:
+                            self.facebook.addPerson(profile_path=data.loc[val,'Profile path'])
+                            ids.append(data[val, 'Id'])
+    
+                    
+                        self.facebook.logout()
+
+                        # self.facebook.sheet.cell(key + 2, 11).value = ','.join(ids)
+
+                    else:
+                        self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
+                        self.facebook.logout(active_acc=False)
 
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(key + 1, data.loc[key, 'Full name'])
@@ -325,8 +312,8 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
     def run(self):
     
         try:
-            for group in self.facebook.accounts_data['group'].unique():
-                data = self.facebook.accounts_data[self.facebook.accounts_data['group']==group].reset_index(drop=True)
+            for group in self.facebook.accounts_data['Group'].unique():
+                data = self.facebook.accounts_data[self.facebook.accounts_data['Group']==group].reset_index(drop=True)
                 comb = list(combinations(data.index.values[::-1], r=2))
 
                 indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}

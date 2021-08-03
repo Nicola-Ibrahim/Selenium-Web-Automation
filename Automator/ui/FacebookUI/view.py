@@ -452,7 +452,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = self.accounts_data[self.accounts_data['group']==accounts_group]
+        accounts_data_splits = self.accounts_data[self.accounts_data['Group']==accounts_group]
         
 
         self.add_friendship_run_btn.setEnabled(False)
@@ -519,7 +519,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        data = self.accounts_data[self.accounts_data['group']==accounts_group].sample(num_of_comments)
+        data = self.accounts_data[self.accounts_data['Group']==accounts_group].sample(num_of_comments)
         accounts_data_splits = splitting(data, num_of_workers)
         
         # Take commnets data as selected comments type data 
@@ -548,7 +548,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         match = reg.match(self.post_url_txt5.text()).capturedTexts()
         if(match):
             match = match[-1][1:]
-            group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'group'].values[0]
+            group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'Group'].values[0]
             self.groups_comboBox2.setCurrentText(group)
     
 
@@ -570,7 +570,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         reg = QtCore.QRegularExpression("\.xlsx$")
         if(reg.match(self.accounts_file_path).hasMatch()):
             try:
-                self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'group'])
+                self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Id', 'Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'Group', 'Added Friends'])
                 
                 
                 # Reinialize values in text boxes
@@ -580,7 +580,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 # Set accounts groups in group comboBox
                 for groups in (self.groups_comboBox1, self.groups_comboBox2):
                     groups.clear()
-                    groups.addItems(np.insert(self.accounts_data['group'].unique(),0 ,'', axis=0))
+                    groups.addItems(np.insert(self.accounts_data['Group'].unique(),0 ,'', axis=0))
 
                 # Set file path in text boxes and
                 # change accounts file path text boxes properties

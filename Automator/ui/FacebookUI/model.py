@@ -6,7 +6,7 @@ class FacebookAccountsModel(QtCore.QAbstractTableModel):
         
     def __init__(self, data, parent = None):
         super().__init__(parent=parent)
-        self._df = data.loc[:,['Full name','Account status','group']]
+        self._df = data.loc[:,['Full name','Account status','Group']]
 
         # for ind, header in enumerate(self._df.columns.values):
         #     self.setHeaderData(ind, QtCore.Qt.Horizontal,header)
