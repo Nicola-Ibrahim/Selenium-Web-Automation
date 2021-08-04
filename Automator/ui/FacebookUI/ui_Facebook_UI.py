@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIYHySFJ.ui'
+# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIfUoFvi.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -26,8 +26,6 @@ class Ui_MainWindow(object):
 "\n"
 "QMainWindow {\n"
 "\n"
-"    \n"
-"    \n"
 "    \n"
 "}\n"
 "\n"
@@ -99,7 +97,6 @@ class Ui_MainWindow(object):
 "QTableView QTableCornerButton::section {\n"
 "    background:  rgb(244, 154, 32);\n"
 "    border: 2px outset red;\n"
-"    image:url(:/icons/icons/checkmark.svg)\n"
 "}\n"
 "\n"
 "\n"

@@ -39,7 +39,7 @@ class Facebook(WbAutomator):
             
                 face.login(email=row['Email'], password=row['Facebook password'])
 
-                if(face.isProfileActive()):
+                if(face.isAccountActive()):
                     self.func(*args, **kwargs)
                     face.logout()
 
@@ -220,7 +220,7 @@ class Facebook(WbAutomator):
         except TimeoutException:
             pass
         
-    def isProfileActive(self):
+    def isAccountActive(self):
         """Check if the specific profile is disable"""
         try:
             
@@ -242,7 +242,7 @@ class Facebook(WbAutomator):
             
             self.login(email=row['Email'], password=row['Facebook password'])
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addPageFollowing(page_path=page_path)
@@ -269,7 +269,7 @@ class Facebook(WbAutomator):
 
             self.login(email=row['Email'], password=row['Facebook password'])
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addLikeOnComment(post_path=post_path)
@@ -294,7 +294,7 @@ class Facebook(WbAutomator):
             self.login(email=row['Email'], password=row['Facebook password'])
 
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addCommentOnPost(post_path=post_path, comment='...')
@@ -319,7 +319,7 @@ class Facebook(WbAutomator):
             self.login(email=row['Email'], password=row['Facebook password'])
 
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addLikeOnPost(post_path=post_path)
@@ -390,7 +390,7 @@ class Facebook(WbAutomator):
 
             self.login(email=row['Email'], password=row['Facebook password'])
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addLikeOnPost(post_path)
@@ -416,7 +416,7 @@ class Facebook(WbAutomator):
 
             self.login(email=row['Email'], password=row['Facebook password'])
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 7).value = self.countNFreinds(profile_path=row['Profile path'])
                 self.logout()
@@ -439,7 +439,7 @@ class Facebook(WbAutomator):
 
             self.login(email=row['Email'], password=row['Facebook password'])
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 self.sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
 
@@ -499,7 +499,7 @@ class Facebook(WbAutomator):
                     self._logger.info(f"login to person {key}")
                     self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
                     
-                    if(self.isProfileActive()):
+                    if(self.isAccountActive()):
                         self.sheet.cell(key + 2, 8).value = 'Active'
                         self.sheet.cell(key + 2, 6).value = self.getProfileLink()
                     
@@ -522,7 +522,7 @@ class Facebook(WbAutomator):
                     self._logger.info(f"login to person {key}")
                     self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
                     
-                    if(self.isProfileActive()):
+                    if(self.isAccountActive()):
                         self.sheet.cell(key + 2, 8).value = 'Active'
                         self.sheet.cell(key + 2, 6).value = self.getProfileLink()
                     
@@ -545,7 +545,7 @@ class Facebook(WbAutomator):
                     self._logger.info(f"login to person {key}")
                     self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
                     
-                    if(self.isProfileActive()):
+                    if(self.isAccountActive()):
                         self.sheet.cell(key + 2, 8).value = 'Active'
                         self.sheet.cell(key + 2, 6).value = self.getProfileLink()
                     
@@ -574,7 +574,7 @@ class Facebook(WbAutomator):
 
             self.login(email=row['Email'], password=row['Facebook password'])
 
-            if(self.isProfileActive()):
+            if(self.isAccountActive()):
                 sheet.cell(ind + 2, 8).value = 'Active'
                 self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
                 self.addPerson(profile_path=profile_path)
@@ -603,7 +603,7 @@ class Facebook(WbAutomator):
                 self._logger.info(f"login to person {key}")
                 self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
                 
-                if(self.isProfileActive()):
+                if(self.isAccountActive()):
                     self.sheet.cell(key + 2, 8).value = 'Active'
                     self.sheet.cell(key + 2, 6).value = self.getProfileLink()
                 

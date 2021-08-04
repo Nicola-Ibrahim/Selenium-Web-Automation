@@ -35,7 +35,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
                 self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
-                if(self.facebook.isProfileActive()):
+                if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
@@ -54,7 +54,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
             
                  
         except (NoSuchWindowException, WebDriverException):
-            self.run_error.emit(ind + 1, row['Full name'])
+            self.run_error.emit(row['Id'], row['Full name'])
         
         else:
             self.settings.setValue('current_acc_ind', 1)
@@ -93,7 +93,7 @@ class PageFollowingUIWorker(QtCore.QThread):
                 self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
-                if(self.facebook.isProfileActive()):
+                if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addPageFollowing(self.url)
@@ -109,7 +109,7 @@ class PageFollowingUIWorker(QtCore.QThread):
 
             
         except (NoSuchWindowException, WebDriverException) as e:
-            self.run_error.emit(ind + 1, row['Full name'])
+            self.run_error.emit(row['Id'], row['Full name'])
         
         else:
             self.settings.setValue('current_acc_ind', 1)
@@ -148,7 +148,7 @@ class CommentsOnPostWorker(QtCore.QThread):
                 self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
-                if(self.facebook.isProfileActive()):
+                if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
@@ -165,7 +165,7 @@ class CommentsOnPostWorker(QtCore.QThread):
 
             
         except (NoSuchWindowException, WebDriverException) as e:
-            self.run_error.emit(ind + 1, row['Full name'])
+            self.run_error.emit(row['Id'], row['Full name'])
         
         else:
             self.settings.setValue('current_acc_ind', 1)
@@ -205,7 +205,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                 self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
-                if(self.facebook.isProfileActive()):
+                if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
@@ -223,7 +223,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
             
             
         except (NoSuchWindowException, WebDriverException) as e:
-            self.run_error.emit(ind + 1, row['Full name'])
+            self.run_error.emit(row['Id'], row['Full name'])
         
         else:
             self.settings.setValue('current_acc_ind', 1)
@@ -257,29 +257,48 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
             for group in self.facebook.accounts_data['Group'].unique():
                 data = self.facebook.accounts_data[self.facebook.accounts_data['Group']==group]
 
+                # Chose the one of the methods to be used 
                 if(self.method == 'enhanced2'):
-                    indices_tree = list(combinations(data.index.values, r=2))
+                    indices_tree = list(combinations(data['Id'].values, r=2))
                 elif(self.method == 'all'):
-                    indices_tree = list(permutations(data.index.values, r=2))
+                    indices_tree = list(permutations(data['Id'].values, r=2))
 
+                # Obtain available accounts for adding for each individual one  
                 indices = {key: [val for _, val in values] for key, values in groupby(indices_tree, itemgetter(0))}
 
+                # Iterate at each individual account
                 for key in indices.keys():
-                    self.facebook.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
+                    self.facebook.login(email=data.loc[key-1,'Email'], password=data.loc[key-1,'Facebook password'])
                     
-                    if(self.facebook.isProfileActive()):
-                        self.facebook.sheet.cell(key + 2, 8).value = 'Active'
-                        self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
+                    if(self.facebook.isAccountActive()):
+                        self.facebook.sheet.cell(key + 1, 8).value = 'Active'
+                        self.facebook.sheet.cell(key + 1, 6).value = self.facebook.getProfileLink()
+                        
+                        # Get previously added accounts' ids  
+                        prev_ids = set(map(int, data.loc[0,'Added Friends'].split(',')))
 
-                        ids = []
-                        for val in indices[key]:
+                        # Get all available accounts' ids 
+                        all_ids = set(indices[key])
+
+                        # Get new accounts' ids
+                        new_ids = all_ids.difference(prev_ids)
+
+                        ids = list(map(int, data.loc[0,'Added Friends'].split(',')))
+                        print(new_ids)
+                        print(ids)
+                        
+                        for val in new_ids:
                             self.facebook.addPerson(profile_path=data.loc[val,'Profile path'])
-                            ids.append(data[val, 'Id'])
-    
+                            self.facebook.acceptPerson(profile_path=data.loc[val,'Profile path'])
+
+                            ids.append(str(data.loc[val, 'Id']))
                     
                         self.facebook.logout()
+                        
+                        self.facebook.sheet.cell(key + 1, 12).value = ','.join(ids)
+                        self.facebook.worker_book.save(self.facebook.accounts_file_path)
+                        print(",".join(ids))
 
-                        # self.facebook.sheet.cell(key + 2, 11).value = ','.join(ids)
 
                     else:
                         self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
@@ -322,7 +341,7 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
                     self.facebook._logger.info(f"login to person {key}")
                     self.facebook.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
                     
-                    if(self.facebook.isProfileActive()):
+                    if(self.facebook.isAccountActive()):
                         self.facebook.sheet.cell(key + 2, 8).value = 'Active'
                         self.facebook.sheet.cell(key + 2, 6).value = self.facebook.getProfileLink()
                     
@@ -377,7 +396,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
                 self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
-                if(self.facebook.isProfileActive()):
+                if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)

@@ -39,8 +39,6 @@ Available at: https://github.com/GTRONICK/QSS/blob/master/Aqua.qss
 QMainWindow {
 
 	
-	
-	
 }
 
 QMessageBox {
@@ -111,7 +109,6 @@ QHeaderView::section:vertical
 QTableView QTableCornerButton::section {
     background:  rgb(244, 154, 32);
     border: 2px outset red;
-	image:url(:/icons/icons/checkmark.svg)
 }
 
 
