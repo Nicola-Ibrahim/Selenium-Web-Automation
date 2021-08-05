@@ -1,5 +1,6 @@
 from itertools import combinations, groupby, permutations
 from operator import itemgetter
+import numpy as np
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from Automator.Facebook.facebook import Facebook
 from PyQt5 import QtCore
@@ -258,51 +259,52 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
                 data = self.facebook.accounts_data[self.facebook.accounts_data['Group']==group]
 
                 # Chose the one of the methods to be used 
+                # indices_tree : [(1,2)(1,3), ..., (2,1)(2,3), ...]
                 if(self.method == 'enhanced2'):
                     indices_tree = list(combinations(data['Id'].values, r=2))
                 elif(self.method == 'all'):
                     indices_tree = list(permutations(data['Id'].values, r=2))
 
+                print('yes')
                 # Obtain available accounts for adding for each individual one  
-                indices = {key: [val for _, val in values] for key, values in groupby(indices_tree, itemgetter(0))}
+                indices_all = {key: {val for _, val in values} for key, values in groupby(indices_tree, itemgetter(0))}
+                indices_prev = {key: set(map(float, str(val).split(','))) for key, val in zip(data.loc[:,'Id'], data.loc[:,'Added Friends'])}
+                indices_avaiable = {key: indices_all[key].difference(indices_prev[key]) for key in indices_all.keys()}
+
+                print(indices_all)
+                print(indices_prev)
+                print(indices_avaiable)
+
 
                 # Iterate at each individual account
-                for key in indices.keys():
-                    self.facebook.login(email=data.loc[key-1,'Email'], password=data.loc[key-1,'Facebook password'])
-                    
-                    if(self.facebook.isAccountActive()):
-                        self.facebook.sheet.cell(key + 1, 8).value = 'Active'
-                        self.facebook.sheet.cell(key + 1, 6).value = self.facebook.getProfileLink()
+                for key in indices_all.keys():
+                    print(f"{data.loc[key-1,'Full name']} : {len(indices_avaiable[key])}")
+                    if(len(indices_avaiable[key]) != 0):
+
+                        self.facebook.login(email=data.loc[key-1,'Email'], password=data.loc[key-1,'Facebook password'])
                         
-                        # Get previously added accounts' ids  
-                        prev_ids = set(map(int, data.loc[0,'Added Friends'].split(',')))
+                        if(self.facebook.isAccountActive()):
+                            self.facebook.sheet.cell(key + 1, 8).value = 'Active'
+                            self.facebook.sheet.cell(key + 1, 6).value = self.facebook.getProfileLink()
+                            
+                            ids = list(indices_prev[key])
 
-                        # Get all available accounts' ids 
-                        all_ids = set(indices[key])
+                            for val in indices_avaiable[key]:
+                                self.facebook.addPerson(profile_path=data.loc[val - 1,'Profile path'])
+                                self.facebook.acceptPerson(profile_path=data.loc[val - 1,'Profile path'])
 
-                        # Get new accounts' ids
-                        new_ids = all_ids.difference(prev_ids)
-
-                        ids = list(map(int, data.loc[0,'Added Friends'].split(',')))
-                        print(new_ids)
-                        print(ids)
+                                ids.append(str(data.loc[val - 1, 'Id']))
                         
-                        for val in new_ids:
-                            self.facebook.addPerson(profile_path=data.loc[val,'Profile path'])
-                            self.facebook.acceptPerson(profile_path=data.loc[val,'Profile path'])
-
-                            ids.append(str(data.loc[val, 'Id']))
-                    
-                        self.facebook.logout()
-                        
-                        self.facebook.sheet.cell(key + 1, 12).value = ','.join(ids)
-                        self.facebook.worker_book.save(self.facebook.accounts_file_path)
-                        print(",".join(ids))
+                            self.facebook.logout()
+                            
+                            self.facebook.sheet.cell(key + 1, 12).value = ','.join(list(map(str, ids)))
+                            self.facebook.worker_book.save(self.facebook.accounts_file_path)
+                            
 
 
-                    else:
-                        self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
-                        self.facebook.logout(active_acc=False)
+                        else:
+                            self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
+                            self.facebook.logout(active_acc=False)
 
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(key + 1, data.loc[key, 'Full name'])
