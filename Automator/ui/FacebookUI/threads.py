@@ -265,20 +265,16 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
                 elif(self.method == 'all'):
                     indices_tree = list(permutations(data['Id'].values, r=2))
 
-                print('yes')
                 # Obtain available accounts for adding for each individual one  
+                # Get all acounts
                 indices_all = {key: {val for _, val in values} for key, values in groupby(indices_tree, itemgetter(0))}
+                # Get previously add accounts
                 indices_prev = {key: set(map(float, str(val).split(','))) for key, val in zip(data.loc[:,'Id'], data.loc[:,'Added Friends'])}
+                # Get new availble accounts
                 indices_avaiable = {key: indices_all[key].difference(indices_prev[key]) for key in indices_all.keys()}
 
-                print(indices_all)
-                print(indices_prev)
-                print(indices_avaiable)
-
-
                 # Iterate at each individual account
-                for key in indices_all.keys():
-                    print(f"{data.loc[key-1,'Full name']} : {len(indices_avaiable[key])}")
+                for key in indices_avaiable.keys():
                     if(len(indices_avaiable[key]) != 0):
 
                         self.facebook.login(email=data.loc[key-1,'Email'], password=data.loc[key-1,'Facebook password'])
@@ -287,21 +283,18 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
                             self.facebook.sheet.cell(key + 1, 8).value = 'Active'
                             self.facebook.sheet.cell(key + 1, 6).value = self.facebook.getProfileLink()
                             
-                            ids = list(indices_prev[key])
-
+                            # Store all previouse accounts' ids and add new one to them
+                            ids = [int(val) for val in indices_prev[key] if (not np.isnan(val))]
                             for val in indices_avaiable[key]:
                                 self.facebook.addPerson(profile_path=data.loc[val - 1,'Profile path'])
                                 self.facebook.acceptPerson(profile_path=data.loc[val - 1,'Profile path'])
 
-                                ids.append(str(data.loc[val - 1, 'Id']))
-                        
+                                ids.append(data.loc[val - 1, 'Id'])
                             self.facebook.logout()
                             
                             self.facebook.sheet.cell(key + 1, 12).value = ','.join(list(map(str, ids)))
                             self.facebook.worker_book.save(self.facebook.accounts_file_path)
                             
-
-
                         else:
                             self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
                             self.facebook.logout(active_acc=False)
