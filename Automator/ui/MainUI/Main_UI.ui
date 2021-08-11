@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>206</height>
+    <height>137</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -134,21 +134,14 @@ QPushButton:pressed{
 
 </string>
   </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>56</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
     <item>
      <widget class="QFrame" name="frame_6">
       <property name="frameShape">
@@ -203,17 +196,19 @@ QPushButton:pressed{
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+     <widget class="QLabel" name="label">
+      <property name="styleSheet">
+       <string notr="true">color: rgb(0, 81, 255);
+padding: 5px;
+font: 12pt &quot;Century Gothic&quot;;</string>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
+      <property name="text">
+       <string>Created by Eng. Nicola Ibrahim</string>
       </property>
-     </spacer>
+      <property name="alignment">
+       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

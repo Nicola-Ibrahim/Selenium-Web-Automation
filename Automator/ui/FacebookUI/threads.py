@@ -152,6 +152,7 @@ class CommentsOnPostWorker(QtCore.QThread):
                 if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
+                    # self.facebook.addCommentOnPost(self.url, "Wow")
                     self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
                     self.facebook.logout()
                     counter +=1
@@ -290,11 +291,11 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
                                 self.facebook.acceptPerson(profile_path=data.loc[val - 1,'Profile path'])
 
                                 ids.append(data.loc[val - 1, 'Id'])
+                                
+                                self.facebook.sheet.cell(key + 1, 12).value = ','.join(list(map(str, ids)))
+
                             self.facebook.logout()
-                            
-                            self.facebook.sheet.cell(key + 1, 12).value = ','.join(list(map(str, ids)))
-                            self.facebook.worker_book.save(self.facebook.accounts_file_path)
-                            
+                                                        
                         else:
                             self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
                             self.facebook.logout(active_acc=False)

@@ -149,7 +149,7 @@ class WbAutomator():
                 self.driver.get(post_path)
 
             
-            like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath1)))
+            like_button = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, like_button_xpath1)))
             like_button.click()
         
         except TimeoutException as e:

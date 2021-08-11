@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Main_UItvxBDX.ui'
+# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Main_UIvEJiEq.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 206)
+        MainWindow.resize(800, 137)
         MainWindow.setStyleSheet("/*\n"
 "Aqua Style Sheet for QT Applications\n"
 "Author: Jaime A. Quiroga P.\n"
@@ -131,12 +131,12 @@ class Ui_MainWindow(object):
 "\n"
 "\n"
 "")
+        MainWindow.setTabShape(QtWidgets.QTabWidget.Rounded)
+        MainWindow.setUnifiedTitleAndToolBarOnMac(False)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
-        spacerItem = QtWidgets.QSpacerItem(20, 56, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem)
         self.frame_6 = QtWidgets.QFrame(self.centralwidget)
         self.frame_6.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_6.setFrameShadow(QtWidgets.QFrame.Raised)
@@ -154,8 +154,13 @@ class Ui_MainWindow(object):
         self.facebook_btn.setObjectName("facebook_btn")
         self.horizontalLayout.addWidget(self.facebook_btn)
         self.verticalLayout.addWidget(self.frame_6)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem1)
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setStyleSheet("color: rgb(0, 81, 255);\n"
+"padding: 5px;\n"
+"font: 12pt \"Century Gothic\";")
+        self.label.setAlignment(QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft)
+        self.label.setObjectName("label")
+        self.verticalLayout.addWidget(self.label)
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -166,4 +171,5 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.instagram_btn.setText(_translate("MainWindow", "Instagram"))
         self.facebook_btn.setText(_translate("MainWindow", "Facebook"))
+        self.label.setText(_translate("MainWindow", "Created by Eng. Nicola Ibrahim"))
 

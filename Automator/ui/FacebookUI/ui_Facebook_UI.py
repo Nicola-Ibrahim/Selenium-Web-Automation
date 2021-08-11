@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIfUoFvi.ui'
+# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIhiqsJX.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -705,8 +705,8 @@ class Ui_MainWindow(object):
 "}")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
-        self.gridLayout.setObjectName("gridLayout")
+        self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.verticalLayout_9.setObjectName("verticalLayout_9")
         self.social_media_stackedWidget = QtWidgets.QStackedWidget(self.centralwidget)
         self.social_media_stackedWidget.setObjectName("social_media_stackedWidget")
         self.facebook_frame = QtWidgets.QWidget()
@@ -1494,7 +1494,13 @@ class Ui_MainWindow(object):
         spacerItem29 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout_3.addItem(spacerItem29, 1, 2, 1, 1)
         self.social_media_stackedWidget.addWidget(self.Main_frame)
-        self.gridLayout.addWidget(self.social_media_stackedWidget, 1, 0, 1, 1)
+        self.verticalLayout_9.addWidget(self.social_media_stackedWidget)
+        self.label_25 = QtWidgets.QLabel(self.centralwidget)
+        self.label_25.setStyleSheet("color: rgb(0, 81, 255);\n"
+"padding: 5px;\n"
+"font: 12pt \"Century Gothic\";")
+        self.label_25.setObjectName("label_25")
+        self.verticalLayout_9.addWidget(self.label_25)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1200, 23))
@@ -1579,4 +1585,5 @@ class Ui_MainWindow(object):
         self.label_36.setText(_translate("MainWindow", "Comments file"))
         self.load_commetns_file_btn.setText(_translate("MainWindow", "load"))
         self.next_btn.setText(_translate("MainWindow", "Next"))
+        self.label_25.setText(_translate("MainWindow", "Created by Eng. Nicola Ibrahim"))
 
