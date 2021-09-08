@@ -5,6 +5,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from Automator.Facebook.facebook import Facebook
 from PyQt5 import QtCore
 import emoji
+import time
 
 class LikesOnPostUIWorker(QtCore.QThread):
     """A thread responsible for putting likes of post"""
@@ -51,9 +52,15 @@ class LikesOnPostUIWorker(QtCore.QThread):
 
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-                
-            
-                 
+                self.facebook.driver.delete_all_cookies()
+                self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
+                self.facebook.driver.close()
+                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
+
+                self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
+                self.facebook.driver.close()
+                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
+
         except (NoSuchWindowException, WebDriverException):
             self.run_error.emit(row['Id'], row['Full name'])
         
@@ -108,6 +115,11 @@ class PageFollowingUIWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
+                self.facebook.driver.delete_all_cookies()
+                self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
+                self.facebook.driver.close()
+                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
+
             
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(row['Id'], row['Full name'])
@@ -152,8 +164,8 @@ class CommentsOnPostWorker(QtCore.QThread):
                 if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
-                    # self.facebook.addCommentOnPost(self.url, "Wow")
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, 'حلوو')
                     self.facebook.logout()
                     counter +=1
                     self.passed_acc_counter.emit(counter)
@@ -164,6 +176,11 @@ class CommentsOnPostWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
+                self.facebook.driver.delete_all_cookies()
+                self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
+                self.facebook.driver.close()
+                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
+
 
             
         except (NoSuchWindowException, WebDriverException) as e:
@@ -223,6 +240,11 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
+                self.facebook.driver.delete_all_cookies()
+                self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
+                self.facebook.driver.close()
+                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
+
             
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(row['Id'], row['Full name'])
@@ -299,6 +321,12 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
                         else:
                             self.facebook.sheet.cell(key + 2, 8).value = 'Inactive'
                             self.facebook.logout(active_acc=False)
+                        
+                        self.facebook.driver.delete_all_cookies()
+                        self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
+                        self.facebook.driver.close()
+                        self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
+
 
         except (NoSuchWindowException, WebDriverException) as e:
             self.run_error.emit(key + 1, data.loc[key, 'Full name'])
@@ -407,7 +435,12 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
     
-            
+                self.facebook.driver.delete_all_cookies()
+                self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
+                self.facebook.driver.close()
+                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
+
+
         except (NoSuchWindowException, WebDriverException):
             self.run_error.emit(ind + 1, row['Full name'])
         

@@ -36,7 +36,7 @@ class WbAutomator():
             # options.add_argument('--headless')
             options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
             options.add_experimental_option("excludeSwitches", ['enable-logging'])
-
+            options.add_argument("--incognito")
             self.driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
 
         elif(driver_type == 'Firefox'):
