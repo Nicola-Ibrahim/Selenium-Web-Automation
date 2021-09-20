@@ -1,5 +1,5 @@
 from Automator.Facebook.facebook import Facebook
-from Automator.WebAutomation import splitting
+from Automator.Auto_Core.WebAutomation import splitting
 import pandas as pd
 import threading
 

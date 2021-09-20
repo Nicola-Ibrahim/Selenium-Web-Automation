@@ -1,22 +1,50 @@
+from Automator.Auto_Core.ChangeMac import changeMacAddress
+from PyQt5.QtCore import QSettings, QThread, pyqtSignal
+
+from selenium.common.exceptions import NoSuchWindowException, WebDriverException
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+
+from Automator.Facebook.facebook import Facebook
+
 from itertools import combinations, groupby, permutations
 from operator import itemgetter
-import numpy as np
-from selenium.common.exceptions import NoSuchWindowException, WebDriverException
-from Automator.Facebook.facebook import Facebook
-from PyQt5 import QtCore
-import emoji
 import time
+import numpy as np
+import emoji
 
-class LikesOnPostUIWorker(QtCore.QThread):
+
+
+def delete_cache(driver):
+	driver.execute_script("window.open('');")
+	time.sleep(1)
+	driver.switch_to.window(driver.window_handles[-1])
+	time.sleep(1)
+	driver.get('chrome://settings/clearBrowserData')
+	time.sleep(1)
+	actions = ActionChains(driver) 
+	actions.send_keys(Keys.TAB * 3 + Keys.DOWN * 3) # send right combination
+	actions.perform()
+	time.sleep(1)
+	actions = ActionChains(driver) 
+	actions.send_keys(Keys.TAB * 4 + Keys.ENTER) # confirm
+	actions.perform()
+	time.sleep(1) # wait some time to finish
+	driver.close() # close this tab
+	driver.switch_to.window(driver.window_handles[0]) # switch back
+     
+    
+
+class LikesOnPostUIWorker(QThread):
     """A thread responsible for putting likes of post"""
 
     
     ### Signals to be emited if there any error occures
     # Sends the account name and his index 
-    run_error = QtCore.pyqtSignal(int, str)
+    run_error = pyqtSignal(int, str)
     
     # Sends number of passed accounts that work
-    passed_acc_counter = QtCore.pyqtSignal(int)
+    passed_acc_counter = pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
         super().__init__(parent=parent)
@@ -24,7 +52,7 @@ class LikesOnPostUIWorker(QtCore.QThread):
         
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -53,13 +81,12 @@ class LikesOnPostUIWorker(QtCore.QThread):
                 # finish = time.perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
                 self.facebook.driver.delete_all_cookies()
+                delete_cache(self.facebook.driver)
+                changeMacAddress()
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
 
-                self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
-                self.facebook.driver.close()
-                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
 
         except (NoSuchWindowException, WebDriverException):
             self.run_error.emit(row['Id'], row['Full name'])
@@ -73,22 +100,22 @@ class LikesOnPostUIWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
 
-class PageFollowingUIWorker(QtCore.QThread):
+class PageFollowingUIWorker(QThread):
     """A thread responsible for putting following for page"""
 
     ### Signals to be emited if there any error occures
     # Sends the account name and his index 
-    run_error = QtCore.pyqtSignal(int, str)
+    run_error = pyqtSignal(int, str)
     
     # Sends number of passed accounts that work
-    passed_acc_counter = QtCore.pyqtSignal(int)
+    passed_acc_counter = pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, url,  parent) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -116,6 +143,7 @@ class PageFollowingUIWorker(QtCore.QThread):
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
                 self.facebook.driver.delete_all_cookies()
+                delete_cache(self.facebook.driver)
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -133,22 +161,22 @@ class PageFollowingUIWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
 
-class CommentsOnPostWorker(QtCore.QThread):
+class CommentsOnPostWorker(QThread):
     """A thread responsible for putting comments on post"""
     
     ### Signals to be emited if there any error occures
     # Sends the account name and his index 
-    run_error = QtCore.pyqtSignal(int, str)
+    run_error = pyqtSignal(int, str)
     
     # Sends number of passed accounts that work
-    passed_acc_counter = QtCore.pyqtSignal(int)
+    passed_acc_counter = pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -164,8 +192,8 @@ class CommentsOnPostWorker(QtCore.QThread):
                 if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
-                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
-                    self.facebook.addCommentOnPost(self.url, 'حلوو')
+                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
                     self.facebook.logout()
                     counter +=1
                     self.passed_acc_counter.emit(counter)
@@ -177,6 +205,7 @@ class CommentsOnPostWorker(QtCore.QThread):
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
                 self.facebook.driver.delete_all_cookies()
+                delete_cache(self.facebook.driver)
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -195,23 +224,23 @@ class CommentsOnPostWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
             
-class Likes_CommentsOnPostWorker(QtCore.QThread):
+class Likes_CommentsOnPostWorker(QThread):
     """A thread responsible for putting likes and comments on post"""
     
     
     ### Signals to be emited if there any error occures
     # Sends the account name and his index 
-    run_error = QtCore.pyqtSignal(int, str)
+    run_error = pyqtSignal(int, str)
     
     # Sends number of passed accounts that work
-    passed_acc_counter = QtCore.pyqtSignal(int)
+    passed_acc_counter = pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -229,6 +258,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
                     self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
                     self.facebook.logout()
                     counter +=1
                     self.passed_acc_counter.emit(counter)
@@ -241,6 +271,7 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
                 self.facebook.driver.delete_all_cookies()
+                delete_cache(self.facebook.driver)
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -258,10 +289,10 @@ class Likes_CommentsOnPostWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
             
-class AddMulitpleFriendsWorker(QtCore.QThread):
+class AddMulitpleFriendsWorker(QThread):
     """Add many persons among each others at the same group"""
 
-    run_error = QtCore.pyqtSignal(int, str)
+    run_error = pyqtSignal(int, str)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, parent, method = 'all') :
         """method : as default 'enhance'
@@ -273,7 +304,7 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.method = method
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         
@@ -323,6 +354,7 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
                             self.facebook.logout(active_acc=False)
                         
                         self.facebook.driver.delete_all_cookies()
+                        delete_cache(self.facebook.driver)
                         self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                         self.facebook.driver.close()
                         self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -339,9 +371,9 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
 
-class AcceptMulitpleFriendsWorker(QtCore.QThread): 
+class AcceptMulitpleFriendsWorker(QThread): 
 
-    run_error = QtCore.pyqtSignal(int, str)
+    run_error = pyqtSignal(int, str)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, comments_type, url, parent) :
        
@@ -350,7 +382,7 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QSettings('Viral Co.', 'Viral app')
 
     def run(self):
     
@@ -391,23 +423,23 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
      
-class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
+class Likes_CommentsOnFriendPostWorker(QThread):
     """A thread responsible for putting likes and comments on the friend post"""
     
     
     ### Signals to be emited if there any error occures
     # Sends the account name and his index 
-    run_error = QtCore.pyqtSignal(int, str)
+    run_error = pyqtSignal(int, str)
     
     # Sends number of passed accounts that work
-    passed_acc_counter = QtCore.pyqtSignal(int)
+    passed_acc_counter = pyqtSignal(int)
 
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
 
         self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QSettings('Viral Co.', 'Viral app')
 
     def run(self):
         try:
@@ -436,6 +468,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
     
                 self.facebook.driver.delete_all_cookies()
+                delete_cache(self.facebook.driver)
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])

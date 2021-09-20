@@ -1,11 +1,10 @@
 
-import numpy as np
 import pandas as pd
 
-from Automator.ui.FacebookUI.model import FacebookAccountsModel, FacebookAccountsSortoModel
-from Automator.ui.FacebookUI.threads import AddMulitpleFriendsWorker, CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
+from Automator.Facebook.model import FacebookAccountsModel, FacebookAccountsSortoModel
+from Automator.Facebook.threads import AddMulitpleFriendsWorker, CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
 from Automator.ui.FacebookUI.ui_Facebook_UI import Ui_MainWindow
-from Automator.WebAutomation import splitting
+from Automator.Auto_Core.WebAutomation import splitting
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -30,7 +29,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.uiChanges()
         self.handleButtons()
         self.regexValidation()
-        self.initialValues()
+        # self.initialValues()
     
     def closeEvent(self, event):
     
@@ -129,7 +128,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.return_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
 
-        self.post_url_txt5.textChanged['QString'].connect(self.updateGroup)
+        # self.post_url_txt5.textChanged['QString'].connect(self.updateGroup)
 
     def regexValidation(self):
         """Apply regular expression to some UI elements"""
@@ -424,14 +423,14 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # split accounts data frame into subsets depending on the number of threads
         accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
-        self.run_btn4.setEnabled(False)
+        self.add_page_followings_run_btn.setEnabled(False)
 
 
         # Creating threads
         for i in range(num_of_workers):
             
             worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
-            worker.finished.connect(lambda : self.run_btn4.setEnabled(True))
+            worker.finished.connect(lambda : self.add_page_followings_run_btn.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
             worker.passed_acc_counter.connect(lambda count: self.page_followings_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl4.setStyleSheet("color: rgb(255,0,0);"))
@@ -548,10 +547,9 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         match = reg.match(self.post_url_txt5.text()).capturedTexts()
         if(match):
             match = match[-1][1:]
+            # group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'Group'].values[0]
             group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'Group'].values[0]
             self.groups_comboBox2.setCurrentText(group)
-    
-
 
     ###############
     # Read files #
@@ -571,24 +569,8 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if(reg.match(self.accounts_file_path).hasMatch()):
             try:
                 self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Id', 'Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'Group', 'Added Friends'])
+                self.accounts_data.dropna(thresh=4, inplace=True)
                 
-                
-                # Reinialize values in text boxes
-                self.initialValues()
-
-
-                # Set accounts groups in group comboBox
-                for groups in (self.groups_comboBox1, self.groups_comboBox2):
-                    groups.clear()
-                    groups.addItems(np.insert(self.accounts_data['Group'].unique(),0 ,'', axis=0))
-
-                # Set file path in text boxes and
-                # change accounts file path text boxes properties
-                text = self.accounts_file_path.split('/')[-1]
-                self.accounts_file_txt.setText(text)
-                self.accounts_file_txt.setStyleSheet("")
-
-
             except ValueError as e:
                 self.accounts_file_txt.setStyleSheet(
                     "QLineEdit {\n"
@@ -605,7 +587,23 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             except FileNotFoundError as e:
                 self.accounts_file_path = None
-                self.readAccountDataFile()            
+                self.readAccountDataFile() 
+
+            else:
+                # Reinialize values in text boxes
+                self.initialValues()
+
+
+                # Set accounts groups in group comboBox
+                for groups in (self.groups_comboBox1, self.groups_comboBox2):
+                    groups.clear()
+                    groups.addItems([''] + self.accounts_data['Group'].unique().tolist())
+
+                # Set file path in text boxes and
+                # change accounts file path text boxes properties
+                text = self.accounts_file_path.split('/')[-1]
+                self.accounts_file_txt.setText(text)
+                self.accounts_file_txt.setStyleSheet("")
     
     def readCommentsDataFile(self):
         """Read comments data file"""
@@ -624,27 +622,9 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             try: 
                 self.comments_data = pd.read_excel(self.comments_file_path, usecols=['Comments', 'Type'])
+                self.comments_data.dropna(inplace=True)
 
-                # Reinialize values in text boxes
-                self.initialValues()
-
-
-                # Set file path in text boxes and
-                # change accounts file path text boxes properties
-                text = self.comments_file_path.split('/')[-1]
-                self.comments_file_txt.setText(text)
-                self.comments_file_txt.setStyleSheet("")
-            
-                # Set type of comments in comboBoxes
-                com_type = np.insert(self.comments_data['Type'].unique(), 0, '')
-
-                self.comments_type_comboBox1.clear()
-                self.comments_type_comboBox2.clear()
-                self.comments_type_comboBox3.clear()
-                self.comments_type_comboBox1.addItems(com_type)
-                self.comments_type_comboBox2.addItems(com_type)
-                self.comments_type_comboBox3.addItems(com_type)
-
+                
             except ValueError:
                 self.comments_file_txt.setStyleSheet(
                     "QLineEdit {\n"
@@ -662,6 +642,22 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except FileNotFoundError:
                 self.comments_file_path = None
                 self.readCommentsDataFile()
+
+            else:
+                # Reinialize values in text boxes
+                self.initialValues()
+
+
+                # Set file path in text boxes and
+                # change accounts file path text boxes properties
+                text = self.comments_file_path.split('/')[-1]
+                self.comments_file_txt.setText(text)
+                self.comments_file_txt.setStyleSheet("")
+            
+                # Set type of comments in comboBoxes
+                for comm_type in (self.comments_type_comboBox1, self.comments_type_comboBox2, self.comments_type_comboBox3):
+                    comm_type.clear()
+                    comm_type.addItems([''] + self.comments_data['Type'].unique().tolist())
 
 
 

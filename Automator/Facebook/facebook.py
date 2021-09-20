@@ -3,16 +3,14 @@ This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
 
-from pandas.core.frame import DataFrame
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.ui import Select
-from Automator.WebAutomation import WbAutomator
+from Automator.Auto_Core.WebAutomation import WbAutomator
 
 import re
-import logging
 import time
 import openpyxl
 import random
@@ -50,7 +48,7 @@ class Facebook(WbAutomator):
             # self.worker_book.close()
 
 
-    def __init__(self, driver_type : str, accounts_file_path : str, accounts_data : DataFrame, comments_data : DataFrame = None) :
+    def __init__(self, driver_type : str, accounts_file_path : str, accounts_data, comments_data = None) :
         super().__init__(driver_type=driver_type, website="https://www.facebook.com/", logfile_path="./logs/Facebook accounts logout info.log")
 
         self._NEW_ACCOUNT_BUTTON_XPTH = "//a[@role='button' and @class= '_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy']"
@@ -78,19 +76,22 @@ class Facebook(WbAutomator):
         self._MESSAGE_TEXTBOX_XPATH = "//div[@aria-label='Aa']"
 
         # self._COMMENT_TEXTBOX_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/form/div/div/div[2]/div/div/div/div"
-        self._COMMENT_TEXTBOX_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/form/div/div/div[1]"
+        self._COMMENT_TEXTBOX_XPATH1 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/form/div/div/div[1]"
+        self._COMMENT_TEXTBOX_XPATH2 =  "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div/div/div/div/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div[2]/div/div[4]/div/div/div[2]/div[3]/div[2]/form/div/div/div[1]"
         # self._COMMENT_TEXTBOX_XPATH = "//div[@aria-label='Write a comment' or @aria-label='كتابة تعليق'][@role='textbox']"
 
 
         self._LIKE_BUTTON_XPATH1 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span"
         self._LIKE_BUTTON_XPATH2 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]/div[1]/div[2]/span/span"
+        self._LIKE_BUTTON_XPATH3 = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"
+        self._LIKE_BUTTON_XPATH4 =   "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[4]/div/div/div/div/div/div/div[1]/div/div/div/div/div/div/div/div/div/div/div[2]/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"
+                                    
         # self._LIKE_BUTTON_XPATH = "//div[@aria-label='Like' or @aria-label='أعجبني'][@role='button']"
                                     
         # self._PAGE_FOLLOW_BUTTON_XPATH = "//span[contains(text(),'Like') or contains(text(),'أعجبني')]"
-        self._PAGE_FOLLOW_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[3]/div/div/div/div[2]/div/div/div/div[2]/div/span/div"
+        self._PAGE_FOLLOW_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[3]/div/div/div/div[2]/div/div/div/div[1]/div/div"
         self._PAGE_LIKE_BUTTON_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div[3]/div/div/div/div[2]/div/div/div[1]"
-                                            
-                                            
+                                                                 
         
         self._ADD_PERSON_BUTTON_XPATH = "//span[contains(text(),'Add Friend') or contains(text(),'إضافة صديق')]"
         self._ACCEPT_PERSON_BUTTON_XPATH1 = "//span[contains(text(),'Respond') or contains(text(),'تأكيد الطلب')]"
@@ -168,7 +169,7 @@ class Facebook(WbAutomator):
         return super().chat( message, profile_path, self._MESSAGE_BUTTON_XPATH, self._MESSAGE_TEXTBOX_XPATH)
         
     def addCommentOnPost(self, post_path, comment):
-        return super().addCommentOnPost(post_path, comment, self._COMMENT_TEXTBOX_XPATH)
+        return super().addCommentOnPost(post_path, comment, self._COMMENT_TEXTBOX_XPATH1, self._COMMENT_TEXTBOX_XPATH2)
 
   
     def addLikeOnComment(self, post_path:str):
@@ -176,7 +177,7 @@ class Facebook(WbAutomator):
 
     
     def addLikeOnPost(self, post_path:str):
-        return super().addLikeOnPost(post_path, self._LIKE_BUTTON_XPATH1, self._LIKE_BUTTON_XPATH2)        
+        return super().addLikeOnPost(post_path, self._LIKE_BUTTON_XPATH1, self._LIKE_BUTTON_XPATH2, self._LIKE_BUTTON_XPATH3, self._LIKE_BUTTON_XPATH4)        
         
 
     def addPageFollowing(self, page_path:str):

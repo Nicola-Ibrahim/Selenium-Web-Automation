@@ -1,10 +1,26 @@
-from Automator.ui.windows import Windows
+from Automator.Facebook.view import AutomatorFacebookWindow
+from Automator.MainWind.view import AutomatorMainWindow
 
 from PyQt5 import QtCore, QtWidgets
 import os 
 import sys
 
-def uiMain():
+
+
+class Windows():
+    def __init__(self):
+        
+        self.main_wind = AutomatorMainWindow()
+        
+        self.main_wind.show()
+
+        self.handleButtons()
+
+    def handleButtons(self):
+        self.main_wind.facebook_btn.clicked.connect(self.main_wind.hide)
+        self.main_wind.facebook_btn.clicked.connect(lambda : AutomatorFacebookWindow(self.main_wind).show())
+
+def Main_run():
 
     # Adjust window to screen
     os.environ["QtCore.QT_AUTO_SCREEN_SCALE_FACTOR"] = '1'
