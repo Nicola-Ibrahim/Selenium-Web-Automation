@@ -1,3 +1,6 @@
+from time import sleep
+from emoji.core import emojize
+from numpy import isnan
 from Automator.Auto_Core.ChangeMac import changeMacAddress
 from PyQt5.QtCore import QSettings, QThread, pyqtSignal
 
@@ -9,31 +12,38 @@ from Automator.Facebook.facebook import Facebook
 
 from itertools import combinations, groupby, permutations
 from operator import itemgetter
-import time
-import numpy as np
-import emoji
 
 
 
 def delete_cache(driver):
 	driver.execute_script("window.open('');")
-	time.sleep(1)
+	sleep(1)
 	driver.switch_to.window(driver.window_handles[-1])
-	time.sleep(1)
+	sleep(1)
 	driver.get('chrome://settings/clearBrowserData')
-	time.sleep(1)
+	sleep(1)
 	actions = ActionChains(driver) 
 	actions.send_keys(Keys.TAB * 3 + Keys.DOWN * 3) # send right combination
 	actions.perform()
-	time.sleep(1)
+	sleep(1)
 	actions = ActionChains(driver) 
 	actions.send_keys(Keys.TAB * 4 + Keys.ENTER) # confirm
 	actions.perform()
-	time.sleep(1) # wait some time to finish
+	sleep(1) # wait some time to finish
 	driver.close() # close this tab
 	driver.switch_to.window(driver.window_handles[0]) # switch back
      
-    
+
+def changeMac(object, avaiable_mac):
+    # Change MAC address (from execl or generate new one)
+    desire_mac_address = str(avaiable_mac) if(type(avaiable_mac) == str) else None
+    current_mac_address, new_mac_address = changeMacAddress(desire_mac_address=desire_mac_address, change_wifi=False, change_ethernet=True)
+
+    # We renavigate to facebook website because it will be crashed by the enternet disconnection
+    object.driver.get(object.website)
+
+    return new_mac_address
+
 
 class LikesOnPostUIWorker(QThread):
     """A thread responsible for putting likes of post"""
@@ -58,7 +68,10 @@ class LikesOnPostUIWorker(QThread):
         try:
             counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
-                # start = time.perf_counter()
+                # start = perf_counter()
+                new_mac_address = changeMac(self.facebook, row['Mac address'])
+
+                self.facebook.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
@@ -78,11 +91,10 @@ class LikesOnPostUIWorker(QThread):
                     self.facebook.logout(active_acc=False)
 
 
-                # finish = time.perf_counter()
+                # finish = perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
                 self.facebook.driver.delete_all_cookies()
-                delete_cache(self.facebook.driver)
-                changeMacAddress()
+                #
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -121,7 +133,11 @@ class PageFollowingUIWorker(QThread):
         try:
             counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
-                # start = time.perf_counter()
+                # start = perf_counter()
+
+                new_mac_address = changeMac(self.facebook, row['Mac address'])
+                
+                self.facebook.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
@@ -139,11 +155,11 @@ class PageFollowingUIWorker(QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
 
-                # finish = time.perf_counter()
+                # finish = perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
 
                 self.facebook.driver.delete_all_cookies()
-                delete_cache(self.facebook.driver)
+            
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -182,7 +198,11 @@ class CommentsOnPostWorker(QThread):
         try:
             counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
-                # start = time.perf_counter()
+                # start = perf_counter()
+
+                new_mac_address = changeMac(self.facebook, row['Mac address'])
+                
+                self.facebook.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
@@ -192,8 +212,8 @@ class CommentsOnPostWorker(QThread):
                 if(self.facebook.isAccountActive()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
-                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    # self.facebook.addCommentOnPost(self.url, emojize(random.choice(self.facebook.comments_data), use_aliases=True))
                     self.facebook.logout()
                     counter +=1
                     self.passed_acc_counter.emit(counter)
@@ -201,11 +221,11 @@ class CommentsOnPostWorker(QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
 
-                # finish = time.perf_counter()
+                # finish = perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
                 self.facebook.driver.delete_all_cookies()
-                delete_cache(self.facebook.driver)
+            
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -246,7 +266,11 @@ class Likes_CommentsOnPostWorker(QThread):
         try:
             counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
-                # start = time.perf_counter()
+                # start = perf_counter()
+
+                new_mac_address = changeMac(self.facebook, row['Mac address'])
+                
+                self.facebook.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
@@ -257,8 +281,8 @@ class Likes_CommentsOnPostWorker(QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
-                    # self.facebook.addCommentOnPost(self.url, emoji.emojize(random.choice(self.facebook.comments_data), use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    # self.facebook.addCommentOnPost(self.url, emojize(random.choice(self.facebook.comments_data), use_aliases=True))
                     self.facebook.logout()
                     counter +=1
                     self.passed_acc_counter.emit(counter)
@@ -267,11 +291,11 @@ class Likes_CommentsOnPostWorker(QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
 
-                # finish = time.perf_counter()
+                # finish = perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
             
                 self.facebook.driver.delete_all_cookies()
-                delete_cache(self.facebook.driver)
+            
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -330,6 +354,10 @@ class AddMulitpleFriendsWorker(QThread):
                 # Iterate at each individual account
                 for key in indices_avaiable.keys():
                     if(len(indices_avaiable[key]) != 0):
+                        
+                        new_mac_address = changeMac(self.facebook, data.loc[key-1,'Mac address'])
+                
+                        self.facebook.sheet.cell(key + 1, 13).value = new_mac_address if(new_mac_address != None) else ''
 
                         self.facebook.login(email=data.loc[key-1,'Email'], password=data.loc[key-1,'Facebook password'])
                         
@@ -338,7 +366,7 @@ class AddMulitpleFriendsWorker(QThread):
                             self.facebook.sheet.cell(key + 1, 6).value = self.facebook.getProfileLink()
                             
                             # Store all previouse accounts' ids and add new one to them
-                            ids = [int(val) for val in indices_prev[key] if (not np.isnan(val))]
+                            ids = [int(val) for val in indices_prev[key] if (not isnan(val))]
                             for val in indices_avaiable[key]:
                                 self.facebook.addPerson(profile_path=data.loc[val - 1,'Profile path'])
                                 self.facebook.acceptPerson(profile_path=data.loc[val - 1,'Profile path'])
@@ -354,7 +382,7 @@ class AddMulitpleFriendsWorker(QThread):
                             self.facebook.logout(active_acc=False)
                         
                         self.facebook.driver.delete_all_cookies()
-                        delete_cache(self.facebook.driver)
+                    
                         self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                         self.facebook.driver.close()
                         self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
@@ -445,7 +473,11 @@ class Likes_CommentsOnFriendPostWorker(QThread):
         try:
             counter = 0
             for ind, row in self.facebook.accounts_data.iterrows():
-                # start = time.perf_counter()
+                # start = perf_counter()
+
+                new_mac_address = changeMac(self.facebook, row['Mac address'])
+                
+                self.facebook.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
 
                 self.facebook.login(email=row['Email'], password=row['Facebook password'])
 
@@ -456,7 +488,7 @@ class Likes_CommentsOnFriendPostWorker(QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
-                    self.facebook.addCommentOnPost(self.url, emoji.emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+                    self.facebook.addCommentOnPost(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
                     self.facebook.logout()
                     counter +=1
                     self.passed_acc_counter.emit(counter)
@@ -464,11 +496,11 @@ class Likes_CommentsOnFriendPostWorker(QThread):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
                     self.facebook.logout(active_acc=False)
 
-                # finish = time.perf_counter()
+                # finish = perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
     
                 self.facebook.driver.delete_all_cookies()
-                delete_cache(self.facebook.driver)
+            
                 self.facebook.driver.execute_script("""window.open("https://www.facebook.com/","_blank")""")              
                 self.facebook.driver.close()
                 self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])

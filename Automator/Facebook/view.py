@@ -44,7 +44,8 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         if reply == QtWidgets.QMessageBox.Yes:
             event.accept()
-            self.main_wind.show()
+            if(self.main_wind != None):
+                self.main_wind.show()
         else:
             event.ignore()
 
@@ -568,7 +569,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         reg = QtCore.QRegularExpression("\.xlsx$")
         if(reg.match(self.accounts_file_path).hasMatch()):
             try:
-                self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Id', 'Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'Group', 'Added Friends'])
+                self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Id', 'Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'Group', 'Added Friends', 'Mac address'])
                 self.accounts_data.dropna(thresh=4, inplace=True)
                 
             except ValueError as e:

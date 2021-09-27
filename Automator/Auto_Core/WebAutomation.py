@@ -37,7 +37,7 @@ class WbAutomator():
             options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
             options.add_experimental_option("prefs", {"enable_do_not_track": True})
             options.add_experimental_option("excludeSwitches", ['enable-logging'])
-            # options.add_argument("--incognito")
+            options.add_argument("--incognito")
             self.driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
 
         elif(driver_type == 'Firefox'):
@@ -50,7 +50,7 @@ class WbAutomator():
         # self.driver.set_window_size(100,600)
 
         # Navigate to specific website
-        self.driver.get(self.website)
+        # self.driver.get(self.website)
        
 
     def initLogger(self, path:str):

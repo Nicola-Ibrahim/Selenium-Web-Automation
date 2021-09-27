@@ -35,7 +35,11 @@ def Main_run():
     # Create the application
     app = QtWidgets.QApplication(sys.argv)
 
-    Windows()
+    # Windows()
+    
+    main_wind = AutomatorFacebookWindow(None)
+    
+    main_wind.show()
 
     # Run the event loop
     sys.exit(app.exec_())
