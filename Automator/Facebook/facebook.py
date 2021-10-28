@@ -3,54 +3,26 @@ This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
 
-from selenium.common.exceptions import TimeoutException
+import logging
+from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.ui import Select
-from Automator.Auto_Core.WebAutomation import WbAutomator
+from Automator.Auto_Core.WebAutomation import WebDriver, WebSiteAutomator
 
 import re
 import time
 import openpyxl
-import random
 from datetime import datetime
-from itertools import combinations, groupby, permutations
-from operator import itemgetter
-import emoji
 
-class Facebook(WbAutomator):
-    """Chiled class automator"""
 
-    class Inner():
-        def __init__(self,func):
-            self.func = func
+class FacbookAutomator(WebSiteAutomator):
+    """Parent class automator"""
 
-            # # Edit accounts file
-            # self.accounts_file_path = accounts_file_path
-            # self.worker_book = openpyxl.load_workbook(self.accounts_file_path)
-            # self.sheet =  self.worker_book.active
+    def __init__(self, driver: WebDriver, accounts_file_path, accounts_data, comments_data = None) -> None:
         
-        def __call__(self, *args, **kwargs):
-            face = Facebook(args[0])
-            for ind, row in args[1].iterrows():
-            
-                face.login(email=row['Email'], password=row['Facebook password'])
-
-                if(face.isAccountActive()):
-                    self.func(*args, **kwargs)
-                    face.logout()
-
-                else:
-                    face.logout2()
-
-            # self.worker_book.save(self.accounts_file_path)
-            # self.worker_book.close()
-
-
-    def __init__(self, driver_type : str, accounts_file_path : str, accounts_data, comments_data = None) :
-        super().__init__(driver_type=driver_type, website="https://www.facebook.com/", logfile_path="./logs/Facebook accounts logout info.log")
-
         self._NEW_ACCOUNT_BUTTON_XPTH = "//a[@role='button' and @class= '_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy']"
 
         self._LOGIN_EMAIL_TEXTBOX_XPATH = "//input[@name = 'email']"
@@ -111,11 +83,22 @@ class Facebook(WbAutomator):
         self.accounts_data = accounts_data
         self.comments_data = comments_data
 
+
+        # # create new logger for testing 
+        # self._logger = self.init_logger("./logs/Facebook accounts logout info.log")
+
+       
         # Edit accounts file
         self.worker_book = openpyxl.load_workbook(self.accounts_file_path)
-        self.sheet =  self.worker_book.active
+        self.sheet =  self.worker_book.active  
 
-    def signUp(self, first_name:str, last_name:str, email:str, password:str, date_of_birth, gender):
+        self.website_url = "https://www.facebook.com/"
+
+        super().__init__(driver, self.website_url) 
+
+
+    
+    def sign_up(self, first_name:str, last_name:str, email:str, password:str, date_of_birth, gender):
         """Sign up for new facebook account"""
         try:
             create_new_account_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._NEW_ACCOUNT_BUTTON_XPTH)))
@@ -154,43 +137,163 @@ class Facebook(WbAutomator):
             time.sleep(40)
         except TimeoutException as e:
             pass
+    
+    def login(self, email:str, password:str):
+        """Login into an account"""
 
-    def login(self, email, password):
-        super().login(email, password, self._LOGIN_EMAIL_TEXTBOX_XPATH, self._LOGIN_PASSOWRD_TEXTBOX_XPATH, self._LOGIN_BUTTON_XPATH)
+        self.driver.get(self.website_url)
+
+        # Search for email textBox, password textBox, and login button
+        try:
+            email_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_EMAIL_TEXTBOX_XPATH)))
+            password_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_PASSOWRD_TEXTBOX_XPATH)))
+            login_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_BUTTON_XPATH)))
+
+            email_textBox.send_keys(email)
+            password_textBox.send_keys(password)
+            login_button.click()
             
-    def logout(self, active_acc = True):
-        if(active_acc):
-            return super().logout(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH)
-        else:
-            return super().logout(self._MENU_BUTTON_XPATH, self._LOUTGOUT_BUTTON1_XPATH, self._LOUTGOUT_BUTTON2_XPATH)
-        
+
+        except TimeoutException as e:
+            pass
+    
+    def logout(self, logout_button_xpath2=None):
+        """Logout from account"""
+        # Search for the menu button and logout button    
+        try: 
+            menu_button = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.XPATH, self._MENU_BUTTON_XPATH)))
+            menu_button.click() 
+
+            logout_button = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON1_XPATH)))
+            logout_button.click()
+
+            if(logout_button_xpath2 != None):
+                logout_button = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.XPATH, self._LOUTGOUT_BUTTON2_XPATH)))
+                logout_button.click()
+
+
+        except (WebDriverException, TimeoutException, NoSuchElementException) as e:
+            pass
     
     def chat(self, message:str, profile_path:str):
-        return super().chat( message, profile_path, self._MESSAGE_BUTTON_XPATH, self._MESSAGE_TEXTBOX_XPATH)
-        
-    def addCommentOnPost(self, post_path, comment):
-        return super().addCommentOnPost(post_path, comment, self._COMMENT_TEXTBOX_XPATH1, self._COMMENT_TEXTBOX_XPATH2)
+        """Chat with a person"""
 
-  
-    def addLikeOnComment(self, post_path:str):
-        return super().addLikeOnComment(post_path, self._VIEW_ALL_COMMETNS_XPATH)
+        # Search for message button and send a message
+        try:
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
+            if(self.driver.current_url != profile_path):
+                self.driver.get(profile_path)
+            
+            message_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._MESSAGE_BUTTON_XPATH)))
+            message_button.click()
 
+            message_text_box = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._MESSAGE_TEXTBOX_XPATH)))
+            message_text_box.send_keys(Keys.CONTROL, 'a', Keys.DELETE)
+            message_text_box.send_keys(message)
+            message_text_box.send_keys(Keys.ENTER)
+
+        except TimeoutException as e:
+            pass
     
-    def addLikeOnPost(self, post_path:str):
-        return super().addLikeOnPost(post_path, self._LIKE_BUTTON_XPATH1, self._LIKE_BUTTON_XPATH2, self._LIKE_BUTTON_XPATH3, self._LIKE_BUTTON_XPATH4)        
+    def add_comment_on_post(self, post_path:str, comment:str):
+        """Add comment on a post"""
+
+        try:
+            
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
+            
+            if(self.driver.current_url != post_path):
+                self.driver.get(post_path)
+            
+            post_comment_box = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._COMMENT_TEXTBOX_XPATH1)))
+            post_comment_box.send_keys(comment)
+            post_comment_box.send_keys(Keys.ENTER)
+
+        except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
+            try:
+                post_comment_box = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._COMMENT_TEXTBOX_XPATH2)))
+                post_comment_box.send_keys(comment)
+                post_comment_box.send_keys(Keys.ENTER)
+            
+            except:
+                pass
         
+    def add_like_on_post(self, post_path:str):
+        """Add like to a post"""
+        try:
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
+            if(self.driver.current_url != post_path):
+                self.driver.get(post_path)
 
-    def addPageFollowing(self, page_path:str):
-        return super().addPageFollowing(page_path, self._PAGE_LIKE_BUTTON_XPATH, self._PAGE_FOLLOW_BUTTON_XPATH)        
+            
+            like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._LIKE_BUTTON_XPATH1)))
+            like_button.click()
+        
+        except TimeoutException as e:
+            try:
+                like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._LIKE_BUTTON_XPATH2)))
+                like_button.click()
+            except TimeoutException as e:
+                    try:
+                        like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._LIKE_BUTTON_XPATH3)))
+                        like_button.click()
+                    except:
+                        try:
+                            like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._LIKE_BUTTON_XPATH4)))
+                            like_button.click()
+                        except:
+                            pass
 
-    def addPerson(self, profile_path:str):
-        return super().addPerson(profile_path, self._ADD_PERSON_BUTTON_XPATH)
+    def add_page_following(self, page_path:str):
+        """Add following for a page"""
+        try:
+            
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
+            if(self.driver.current_url != page_path):
+                self.driver.get(page_path)
+            
+            follow_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._PAGE_FOLLOW_BUTTON_XPATH)))
+            follow_button.click()
+        except TimeoutException as e:
+            try:
+                
+                like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._PAGE_LIKE_BUTTON_XPATH)))
+                like_button.click()    
+            except:
+                pass
+        
+    def add_person(self, profile_path:str,):
+        """Add person"""
+        try:
+            
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//head")))
+            if(self.driver.current_url != profile_path):
+                self.driver.get(profile_path)
+            
+            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._ADD_PERSON_BUTTON_XPATH)))
+            add_button.click()
+
+        except TimeoutException as e:
+            pass
     
-    def acceptPerson(self, profile_path:str):
-        return super().acceptPerson(profile_path, self._ACCEPT_PERSON_BUTTON_XPATH1, self._ACCEPT_PERSON_BUTTON_XPATH2)
+    def accept_person(self, profile_path:str):
+        """Accept person"""
+        try:
+            
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//head")))
+            if(self.driver.current_url != profile_path):
+                self.driver.get(profile_path)
+            
+            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._ACCEPT_PERSON_BUTTON_XPATH1)))
+            add_button.click()
 
+            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, self._ACCEPT_PERSON_BUTTON_XPATH2)))
+            add_button.click()
 
-    def countNFreinds(self, profile_path:str):
+        except TimeoutException as e:
+            pass
+
+    def get_num_of_friends(self, profile_path:str):
         """Calculate the number of friends for specific profile"""
         WebDriverWait(self.driver, 40).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))  
         self.driver.get(profile_path)
@@ -214,7 +317,7 @@ class Facebook(WbAutomator):
             
         return 0 
 
-    def getProfileLink(self):
+    def get_profile_link(self):
         """Obtain profile link(path) after login into it"""
         try:
             profile_link = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, self._PROFILE_LINK_XPATH)))
@@ -222,8 +325,8 @@ class Facebook(WbAutomator):
         except TimeoutException:
             pass
         
-    def isAccountActive(self):
-        """Check if the specific profile is disable"""
+    def is_account_active(self):
+        """Check if an account is active"""
         try:
             
             label = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOCKED_PROFILE_TEXT_XPATH)))
@@ -232,393 +335,3 @@ class Facebook(WbAutomator):
 
         except TimeoutException:
             return True
-
-    
-    ############################################################
-    ### Some workers to be using throught threads techniques ###
-    ############################################################
-    def addPageFollowingWorker(self, page_path):
-        
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-            
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-            if(self.isAccountActive()):
-                self.sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-                self.addPageFollowing(page_path=page_path)
-                self.logout()
-
-            else:
-                self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-            
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-
-    def addLikeOnCommentWorker(self, post_path):
-        
-
-        worker_book = openpyxl.load_workbook(self.accounts_file_path)
-        sheet =  worker_book.active
-
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-            if(self.isAccountActive()):
-                sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-                self.addLikeOnComment(post_path=post_path)
-                self.logout()
-
-            else:
-                sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-                
-        
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-     
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-    
-    def addCommentOnPostWorker(self, post_path):
-        
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-
-            if(self.isAccountActive()):
-                self.sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-                self.addCommentOnPost(post_path=post_path, comment='...')
-                self.logout()
-
-            else:
-                self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-    
-    def addLikeOnPostWorker(self, post_path):
-        
-        
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-
-            if(self.isAccountActive()):
-                self.sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-                self.addLikeOnPost(post_path=post_path)
-                self.logout()
-
-            else:
-                self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-
-    def addLike_CommentOnPostWorker(self,post_path):
-        
-        # comments = ['.','..','....','السعر','سعر','السعر لو سمحت','عنوان','مقاسات']
-        # weights = [0.3, 0.5, 0.3, 0.1, 0.1, 0.1, 0.1, 0.1]
-       
-        commments = [
-            'واااوheart:',
-            ':heart::heart::heart:',
-            ':heart::heart:',
-            ':heart::heart:',
-            ':heart::heart::heart:',
-            'واااو :heart::heart:',
-            'يسلم ايديك',
-            'شغل روعة',
-            'فخامة',
-            'ممتاااااز',
-            'برافوو' ,
-            'عظيم',
-            'الله يقويك :heart::heart:',
-            'شغل ممتاز ولله',
-            'من نجاح لنجاح دكتورنا',
-            'ماشالله :heart::heart:',
-            'اي هك شغل يابلا :heart::heart::heart::heart:',
-            'بالتوفيق يارب',
-            'احلى دكتور',
-            'موفق دكتورنا',
-            'مبدع',
-            'دكتورنا:heart::heart::heart::heart:',
-            'يسلم هالايدين',
-            'موقق عطول :heart::heart:',
-            'شغل روعة :heart::heart:',
-            'ممتاز',
-            'شي فخم',
-            'نتائج رائعة',
-            'بالتوفيييق دكتورنا الغالي',
-            'بالتوفيق دكتورنا',
-            'بالتوفييق دكتورنا',
-            ':heart::heart::heart:',
-            ':heart:',
-            'دكتورنا الراقي',
-            'مافي منك دكتور',
-            'دكتورنا المذوق :heart:',
-            'شغلك بيحكي عنك:heart:',
-            'ماشالله ع هالشغل الحلو',
-            'شغلك ممتاز ع طول :heart::heart:',
-            'متألق:heart::heart:',
-            ':heart::heart::heart:',
-            'برافو عنجد:heart::heart:',
-            'ممتاز',
-        ]
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-            if(self.isAccountActive()):
-                self.sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-                self.addLikeOnPost(post_path)
-                # self.addCommentOnPost(post_path, random.choices(comments, weights, k=1)[0])
-                self.addCommentOnPost(post_path, emoji.emojize(random.choice(commments), use_aliases=True))
-                
-                self.logout()
-            else:
-                self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-
-
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-        
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-
-    def countNFreindsWorker(self):
-        
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-            if(self.isAccountActive()):
-                self.sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 7).value = self.countNFreinds(profile_path=row['Profile path'])
-                self.logout()
-
-            else:
-                self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-
-
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-        
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-
-    def getProfileLinkWorker(self):
-
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-            if(self.isAccountActive()):
-                self.sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-
-                self.logout()
-            else:
-                self.sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['Full name']}" in {round(finish-start,2)} second(s)""")
-
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-
-    def addMulitplePersonsWorker(self, method = 'enhanced2'):
-        """
-        Add many persons from one account
-        method : as default 'enhance'
-                we can use ('simple', 'enhance', 'all')
-                simple -> simplest algorithm that doesn't combrehend all conditions
-                enhanced1 -> it is enhanced algorithm from simple algorithm
-                enhanced2 -> it is enhanced algorithm from simple algorithm
-                all -> can implement add person or response to received friendship request 
-        """
-        for group in self.accounts_data['group'].unique():
-            data = self.accounts_data[self.accounts_data['group']==group].reset_index(drop=True)
-            
-            
-            if(method == 'simple'):
-                comb = list(combinations(data.index.values, r=2))
-                k = 0    # saving current login account
-                m = -1   # saving previous login account
-                
-                for i,j in comb:
-                    
-                    if(i > k):
-                        self._logger.info(f"""Logout from {k}""")
-                        self.logout()
-                        k=i
-                        
-                    elif(k > m):
-                        self._logger.info(f"login to person {k}")
-                        self.login(email=data.loc[k,'Email'], password=data.loc[k,'Facebook password'])
-                        m = k
-                    
-                        
-                    elif(i==k):
-                        self._logger.info(f"add person {j}")
-                        self.addPerson(profile_path=data.loc[j,'Profile path'])
-
-            elif(method == 'enhanced1'):
-                comb = list(combinations(data.index.values, r=2))
-                keys = set(map(lambda item: item[0], comb))
-                indices = {k:[y for x,y in comb if x==k] for k in keys}
-
-                for key in indices.keys():
-                    self._logger.info(f"login to person {key}")
-                    self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
-                    
-                    if(self.isAccountActive()):
-                        self.sheet.cell(key + 2, 8).value = 'Active'
-                        self.sheet.cell(key + 2, 6).value = self.getProfileLink()
-                    
-                        for val in indices[key]:
-                            self._logger.info(f"add person {val}")
-                            self.addPerson(profile_path=data.loc[val,'Profile path'])
-                    
-                        self._logger.info(f"""Logout from {key}""")
-                        self.logout()
-
-                    else:
-                        self.sheet.cell(key + 2, 8).value = 'Inactive'
-                        self.logout(active_acc=False)
-
-            elif(method == 'enhanced2'):
-                comb = list(combinations(data.index.values, r=2))
-                indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
-
-                for key in indices.keys():
-                    self._logger.info(f"login to person {key}")
-                    self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
-                    
-                    if(self.isAccountActive()):
-                        self.sheet.cell(key + 2, 8).value = 'Active'
-                        self.sheet.cell(key + 2, 6).value = self.getProfileLink()
-                    
-                        for val in indices[key]:
-                            self._logger.info(f"add person {val}")
-                            self.addPerson(profile_path=data.loc[val,'Profile path'])
-                    
-                        self._logger.info(f"""Logout from {key}""")
-                        self.logout()
-
-                    else:
-                        self.sheet.cell(key + 2, 8).value = 'Inactive'
-                        self.logout(active_acc=False)
-
-            elif(method == 'all'):
-                perm = list(permutations(data.index.values, r=2))
-                indices = {key: [val for _, val in values] for key, values in groupby(perm, itemgetter(0))}
-
-                for key in indices.keys():
-                    self._logger.info(f"login to person {key}")
-                    self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
-                    
-                    if(self.isAccountActive()):
-                        self.sheet.cell(key + 2, 8).value = 'Active'
-                        self.sheet.cell(key + 2, 6).value = self.getProfileLink()
-                    
-                        for val in indices[key]:
-                            self._logger.info(f"add person {val}")
-                            self.addPerson(profile_path=data.loc[val,'Profile path'])
-                            self.acceptPerson(profile_path=data.loc[val,'Profile path'])
-                    
-                        self._logger.info(f"""Logout from {key}""")
-                        self.logout()
-
-                    else:
-                        self.sheet.cell(key + 2, 8).value = 'Inactive'
-                        self.logout(active_acc=False)
-
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()    
-
-    def addOnePersonWorker(self, profile_path):
-        
-        worker_book = openpyxl.load_workbook(self.accounts_file_path)
-        sheet =  worker_book.active
-
-        for ind, row in self.accounts_data.iterrows():
-            # start = time.perf_counter()
-
-            self.login(email=row['Email'], password=row['Facebook password'])
-
-            if(self.isAccountActive()):
-                sheet.cell(ind + 2, 8).value = 'Active'
-                self.sheet.cell(ind + 2, 6).value = self.getProfileLink()
-                self.addPerson(profile_path=profile_path)
-                self.logout()
-
-            else:
-                sheet.cell(ind + 2, 8).value = 'Inactive'
-                self.logout(active_acc=False)
-        
-            # finish = time.perf_counter()
-            # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-        
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()
-
-    def acceptMulitplePersonsWorker(self):
-        
-
-        for group in self.accounts_data['group'].unique():
-            data = self.accounts_data[self.accounts_data['group']==group].reset_index(drop=True)
-            comb = list(combinations(data.index.values[::-1], r=2))
-
-            indices = {key: [val for _, val in values] for key, values in groupby(comb, itemgetter(0))}
-
-            for key in indices.keys():
-                self._logger.info(f"login to person {key}")
-                self.login(email=data.loc[key,'Email'], password=data.loc[key,'Facebook password'])
-                
-                if(self.isAccountActive()):
-                    self.sheet.cell(key + 2, 8).value = 'Active'
-                    self.sheet.cell(key + 2, 6).value = self.getProfileLink()
-                
-                    for val in indices[key]:
-                        self._logger.info(f"add person {val}")
-                        self.acceptPerson(profile_path=data.loc[val,'Profile path'])
-                
-                    self._logger.info(f"""Logout from {key}""")
-                    self.logout()
-
-                else:
-                    self.sheet.cell(key + 2, 8).value = 'Inactive'
-                    self.logout(active_acc=False)
-
-        self.worker_book.save(self.accounts_file_path)
-        self.worker_book.close()  

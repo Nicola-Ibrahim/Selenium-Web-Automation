@@ -1,59 +1,56 @@
 """
-This the parent class that can be inherited to automate any website. 
+This the parent class that can be inherited to automate any website_url. 
 If some forms as (login or logout ets...) have different shape then the method that responsiable about 
 that should be overriden.  
 """
-from selenium import webdriver
+from seleniumwire import webdriver
 from selenium.webdriver.chrome.options import Options
 # from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException
 # from selenium.webdriver.common.action_chains import ActionChains
-# from selenium.webdriver.remote.webelement import WebElement
 
 
+from abc import ABC, abstractmethod
+from typing import NewType
 import numpy as np
 import logging
 
 
-class WbAutomator():
-    """Parent class automator"""
 
-    def __init__(self, driver_type, website, logfile_path):
-        """Initial a Chrome or Firefox driver"""
+type = NewType('type', )
+
+class WebDriver(ABC):
+    @abstractmethod
+    def init_driver(self):
+        pass
+
+class ChromeWebDriver(WebDriver):
+    def init_driver(self):
+        # capa = DesiredCapabilities.CHROME
+        # capa["pageLoadStrategy"] = "none"
         
-        # create new logger for testing 
-        # self._logger = self.initLogger(logfile_path)
+        options = Options()
+        # options.add_argument('--headless')
+        options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
+        options.add_experimental_option("prefs", {"enable_do_not_track": True})
+        options.add_experimental_option("excludeSwitches", ['enable-logging'])
+        options.add_argument("--incognito")
+        return webdriver.Chrome(executable_path='chromedriver.exe', options=options)
 
-        if(driver_type == 'Chrome'):
-            # capa = DesiredCapabilities.CHROME
-            # capa["pageLoadStrategy"] = "none"
-            
-            options = Options()
-            # options.add_argument('--headless')
-            options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications" : 2})
-            options.add_experimental_option("prefs", {"enable_do_not_track": True})
-            options.add_experimental_option("excludeSwitches", ['enable-logging'])
-            options.add_argument("--incognito")
-            self.driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
 
-        elif(driver_type == 'Firefox'):
-            self.driver = webdriver.Firefox(executable_path='geckodriver.exe')
-            
-        self.website = website
-        self.waiting_time = 10
+class FirefoxWebDriver(WebDriver):
+    def init_driver(self):            
+        return webdriver.Firefox(executable_path='geckodriver.exe')
 
-        # Change window size
-        # self.driver.set_window_size(100,600)
 
-        # Navigate to specific website
-        # self.driver.get(self.website)
-       
+class WebSiteAutomator(ABC):
+    def __init__(self, driver: WebDriver, website_url:str) -> None:
+        self.website_url = website_url
+        self.driver: webdriver = driver.init_driver()
 
-    def initLogger(self, path:str):
+        # Navigate to specific website_url
+        self.driver.get(self.website_url)
+
+    def init_logger(self, path:str):
         """Intial new logger
         path: logger file path
         """
@@ -66,181 +63,52 @@ class WbAutomator():
         logger.addHandler(handler)
 
         return logger
-
-    def signUp(self):
+    
+    @abstractmethod
+    def sign_up(self):
         pass
 
-    def login(self, email:str, password:str, email_xpath, pass_xpath, login_button_xpath):
+    @abstractmethod
+    def login(self):
         """Login into an account"""
-        # Search for email textBox, password textBox, and login button
-        try:
-            email_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, email_xpath)))
-            password_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, pass_xpath)))
-            login_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, login_button_xpath)))
-
-            email_textBox.send_keys(email)
-            password_textBox.send_keys(password)
-            login_button.click()
+        pass
             
-
-        except TimeoutException as e:
-            pass
-    
-    def logout(self, menu_xpath, logout_button_xpath1, logout_button_xpath2=None):
+    @abstractmethod
+    def logout(self):
         """Logout from account"""
-        # Search for the menu button and logout button    
-        try: 
-            menu_button = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.XPATH, menu_xpath)))
-            menu_button.click() 
+        pass
 
-            logout_button = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.XPATH, logout_button_xpath1)))
-            logout_button.click()
-
-            if(logout_button_xpath2 != None):
-                logout_button = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.XPATH, logout_button_xpath2)))
-                logout_button.click()
-
-            # self.driver.get(self.website)
-
-        except (WebDriverException, TimeoutException, NoSuchElementException) as e:
-            pass
     
-    def chat(self, message:str, profile_path:str, message_button_xpath, message_box_xpath):
-        """Chat with a person"""
-
-        # Search for message button and send a message
-        try:
-            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            if(self.driver.current_url != profile_path):
-                self.driver.get(profile_path)
-            
-            message_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, message_button_xpath)))
-            message_button.click()
-
-            message_text_box = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, message_box_xpath)))
-            message_text_box.send_keys(Keys.CONTROL, 'a', Keys.DELETE)
-            message_text_box.send_keys(message)
-            message_text_box.send_keys(Keys.ENTER)
-
-        except TimeoutException as e:
-            pass
-    
-    def addCommentOnPost(self, post_path:str, comment:str, comment_box_xpath1, comment_box_xpath2):
+    @abstractmethod
+    def add_comment_on_post(self):
         """Add comment on a post"""
-
-        try:
-            
-            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            
-            if(self.driver.current_url != post_path):
-                self.driver.get(post_path)
-            
-            post_comment_box = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath1)))
-            post_comment_box.send_keys(comment)
-            post_comment_box.send_keys(Keys.ENTER)
-
-        except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
-            try:
-                post_comment_box = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, comment_box_xpath2)))
-                post_comment_box.send_keys(comment)
-                post_comment_box.send_keys(Keys.ENTER)
-            
-            except:
-                pass
+        pass
         
-    def addLikeOnPost(self, post_path:str, like_button_xpath1, like_button_xpath2, like_button_xpath3, like_button_xpath4):
+    @abstractmethod
+    def add_like_on_post(self):
         """Add like to a post"""
-        try:
-            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            if(self.driver.current_url != post_path):
-                self.driver.get(post_path)
+        pass
 
-            
-            like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath1)))
-            like_button.click()
-        
-        except TimeoutException as e:
-            try:
-                like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath2)))
-                like_button.click()
-            except TimeoutException as e:
-                    try:
-                        like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath3)))
-                        like_button.click()
-                    except:
-                        try:
-                            like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath4)))
-                            like_button.click()
-                        except:
-                            pass
-
-    def addPageFollowing(self, page_path:str, like_button_xpath, follow_button_xpath):
+    @abstractmethod
+    def add_page_following(self):
         """Add following for a page"""
-        try:
-            
-            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            if(self.driver.current_url != page_path):
-                self.driver.get(page_path)
-            
-            follow_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, follow_button_xpath)))
-            follow_button.click()
-        except TimeoutException as e:
-            try:
-                
-                like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, like_button_xpath)))
-                like_button.click()    
-            except:
-                pass
+        pass
         
-    def addPerson(self, profile_path:str, add_button_xpath):
+    @abstractmethod
+    def add_person(self):
         """Add person"""
-        try:
-            
-            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//head")))
-            if(self.driver.current_url != profile_path):
-                self.driver.get(profile_path)
-            
-            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, add_button_xpath)))
-            add_button.click()
+        pass
 
-        except TimeoutException as e:
-            pass
-    
-    def acceptPerson(self, profile_path:str, accept_button_xpath1, accept_button_xpath2):
+    @abstractmethod
+    def accept_person(self):
         """Accept person"""
-        try:
-            
-            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//head")))
-            if(self.driver.current_url != profile_path):
-                self.driver.get(profile_path)
-            
-            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, accept_button_xpath1)))
-            add_button.click()
+        pass
 
-            add_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, accept_button_xpath2)))
-            add_button.click()
+    @staticmethod
+    def simple_splitting(accounts_data, num_of_splits):
+        """ Splitting data frame into multiple frames depending on the number of threads"""
 
-        except TimeoutException as e:
-            pass
-
-    # def __enter__(self):
-    #     print('Start testing')
-    #     return self
-      
-    # def __exit__(self, exc_type, exc_value, exc_traceback):
-    #     print('End testing')
-    #     self.driver.quit()
-    
-    
-
-def splitting(accounts_data, num_of_splits, method='enhanced'):
-    """ Splitting data frame into multiple frames depending on the number of threads
-        method: if  hard -> Splitting in hard way
-                    simple -> Splitting in simple way
-    """
-
-    if(method == 'simple'):
-        # Get thee dataFrame index 
+        # Get thee df index 
         df_indices = accounts_data.index.values
 
         # Calculate the number of items in each splitted group
@@ -254,7 +122,9 @@ def splitting(accounts_data, num_of_splits, method='enhanced'):
 
         return groups_items_df
 
-    elif(method == 'enhanced'):
+    @staticmethod
+    def enhanced_splitting(accounts_data, num_of_splits):
+        """ Splitting data frame into multiple frames depending on the number of threads"""
         return np.array_split(accounts_data, num_of_splits)
 
-    
+        

@@ -2,7 +2,7 @@
 import pandas as pd
 
 from Automator.Facebook.model import FacebookAccountsModel, FacebookAccountsSortoModel
-from Automator.Facebook.threads import AddMulitpleFriendsWorker, CommentsOnPostWorker, LikesOnPostUIWorker, Likes_CommentsOnPostWorker, PageFollowingUIWorker
+from Automator.Facebook.threads import AddMulitpleFriendsWorker, UIWorker
 from Automator.ui.FacebookUI.ui_Facebook_UI import Ui_MainWindow
 from Automator.Auto_Core.WebAutomation import splitting
 
@@ -14,13 +14,15 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self,parent)
         self.main_wind = main_wind
 
-        self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        # self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
 
         self.accounts_file_path = self.settings.value('facebook_accounts_file_path')
         self.accounts_data = None
         self.comments_file_path = self.settings.value('facebook_comments_file_path')
         self.comments_data = None
         self.driver_type = None
+        self.adapter_name = None
 
        
         self.facebook_accounts_sort_model = None
@@ -146,13 +148,13 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.end_acc_range_txt3.setValidator(validator)
         self.end_acc_range_txt4.setValidator(validator)
         
-        # Set validation for checking number of workers
-        validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('[1-4]{1}'))
-        self.num_of_workers_txt1.setValidator(validator)
-        self.num_of_workers_txt2.setValidator(validator)
-        self.num_of_workers_txt3.setValidator(validator)
-        self.num_of_workers_txt4.setValidator(validator)
-        self.num_of_workers_txt5.setValidator(validator)
+        # # Set validation for checking number of workers
+        # validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('[1-4]{1}'))
+        # self.num_of_workers_txt1.setValidator(validator)
+        # self.num_of_workers_txt2.setValidator(validator)
+        # self.num_of_workers_txt3.setValidator(validator)
+        # self.num_of_workers_txt4.setValidator(validator)
+        # self.num_of_workers_txt5.setValidator(validator)
 
         # Set validation for checking url values
         # validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('(https://www.)*(\w+)(.[a-zA-Z]{1,3})(\/[ء-يa-zA-Z0-9\.-=?_&#]*)*'))
@@ -168,7 +170,12 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Facebook Workers #
     ####################
     def facebookPanel(self):
-        if(self.accounts_data is None):
+        if(self.adapter_name_txt.text()==''):
+            self.adapter_name_txt.setFocus()
+            QtWidgets.QToolTip.showText(self.adapter_name_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter adapter name")
+            return
+
+        elif(self.accounts_data is None):
             self.accounts_file_txt.setFocus()
             QtWidgets.QToolTip.showText(self.accounts_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook accounts file path")
             return
@@ -177,8 +184,10 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comments_file_txt.setFocus()
             QtWidgets.QToolTip.showText(self.comments_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook comments file path")
             return
+
         
         self.driver_type = self.driver_type_comboBox.currentText()
+        self.adapter_name = self.adapter_name_txt.text()
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame'))
     
     def addCommentsOnPostUIworker(self):
@@ -238,7 +247,8 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            # worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Comments on post', self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
@@ -259,6 +269,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         start_num = self.start_acc_range_txt2.text()
         end_num = self.end_acc_range_txt2.text()
         num_of_workers = self.num_of_workers_txt2.text()
+
 
         # Check if any of the texts is empty
         if(url == ''):
@@ -295,13 +306,15 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # split accounts data frame into subsets depending on the number of threads
         accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
+
         self.add_likes_run_btn.setEnabled(False)
 
 
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
+            # worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
+            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Likes on post', self.driver_type, self.accounts_file_path, accounts_data_splits[i], None, url, self)
             worker.passed_acc_counter.connect(lambda count: self.likes_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
@@ -370,7 +383,8 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             # Creating instance from the Facebook classs
             
-            worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            # worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Likes and comments on post', self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.passed_acc_counter.connect(lambda count: self.comments_likes_counter_lbl.setText(f"{count}"))
             worker.finished.connect(lambda : self.add_likes_comments_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
@@ -424,13 +438,15 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # split accounts data frame into subsets depending on the number of threads
         accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
+        
         self.add_page_followings_run_btn.setEnabled(False)
 
 
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
+            # worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
+            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Page following', self.driver_type, self.accounts_file_path, accounts_data_splits[i], None, url, self)
             worker.finished.connect(lambda : self.add_page_followings_run_btn.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
             worker.passed_acc_counter.connect(lambda count: self.page_followings_counter_lbl.setText(f"{count}"))
@@ -564,6 +580,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         directory = self.settings.value('facebook_accounts_file_path'),filter="XLSX files (*.xlsx)")
 
             self.settings.setValue('facebook_accounts_file_path', self.accounts_file_path)
+            self.settings.sync()
 
         # check if the file extension is an Excel file
         reg = QtCore.QRegularExpression("\.xlsx$")
@@ -615,6 +632,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         directory = self.settings.value('facebook_comments_file_path'),filter="XLSX files (*.xlsx)")
             
             self.settings.setValue('facebook_comments_file_path', self.comments_file_path)
+            self.settings.sync()
             
         # check if the file extension is an Excel file
         reg = QtCore.QRegularExpression("\.xlsx$")
