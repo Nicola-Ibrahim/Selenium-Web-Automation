@@ -1,14 +1,17 @@
 
-from abc import ABC
+from abc import abstractmethod
 from typing import Union
 from PyQt5 import QtCore
+from PyQt5.QtWidgets import QTabWidget
+from pandas.core.frame import DataFrame
 
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from Automation.core.drivers import CustomeWebDriver
 
-from Automator.Facebook.facebook import Facebook
-from Automator.Auto_Core.ChangeMac import changeMacAddress
+from Automation.facebook_automation.facebook import FacbookAutomator
+from Automation.core.ChangeMac import MacChanger
 
 from time import sleep
 from emoji.core import emojize
@@ -49,43 +52,38 @@ class WorkerType(Enum):
     PAGE_FOLLOWING_POST = auto()
 
 
-
-class UIWorker(ABC, QtCore.QThread):
-    """A thread responsible for putting likes of post"""
-
+class FacebookInteraction(QtCore.QThread):
+    """Creating thread for interacting in facebook website"""
     
-    ### Signals to be emited if there any error occures
     # Sends the account name and his index 
     run_error = QtCore.pyqtSignal(int, str)
     
     # Sends number of passed accounts that work
     passed_acc_counter = QtCore.pyqtSignal(int)
 
-    def __init__(self, adapter_name, adapter_type, work_type, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
+    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, comments_data: DataFrame, url: str, parent: QTabWidget) :
         super().__init__(parent=parent)
 
-        
-        self.facebook: Facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
+        self.facebook: FacbookAutomator = FacbookAutomator(driver, accounts_file_path, accounts_data, comments_data)
         self.url = url
         self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
-        self.work_type = work_type
-        self.adapter_name = adapter_name
-        self.adapter_type = adapter_type
-        self.new_mac_address = None
         self.counter = 0
+        self.mac_changer: MacChanger = mac_changer
 
 
-    def change_mac_addr(self, mac_address: Union(str,None)):
+    def change_mac_addr(self, prev_mac_address = None):
+        """Change the mac address for each account"""
         # Change MAC address (from execl or generate new one)
-        desire_mac_address = str(mac_address) if(type(mac_address) == str) else None
-        current_mac_address, new_mac_address = changeMacAddress(self.adapter_name, self.adapter_type, desire_mac_address)
+        desire_mac_address = str(prev_mac_address) if(isinstance(prev_mac_address, str)) else None
+        current_mac_address, new_mac_address = self.mac_changer.change_mac_address(desire_mac_address)
 
         print(f"Previouse MAC address: {current_mac_address}")
         print(f"New MAC address: {new_mac_address}")
 
         return new_mac_address
 
-    def check_internet_connection(self, url:str, timeout:int = 3) -> bool:
+    def get_response(self, url:str, timeout:int = 3) -> bool:
+        """Get a response from the url to check if there is any connectino"""
         try:
             #r = requests.get(url, timeout=timeout)
             r = requests.head(url, timeout=timeout)
@@ -94,106 +92,93 @@ class UIWorker(ABC, QtCore.QThread):
             return False
     
     def is_connected(self):
+        """Check if there is a connection to the internet"""
+
         # Keep running inside a loop until there is a connection
         while(True):
-            connected = self.check_internet_connection(url=self.facebook.website)
+            connected = self.get_response(url=self.facebook.website_url)
             if(connected):
                 print("Connected to Enternet")
+                print("="*40)
                 break
         return True
+    
+    def get_rquest_header(self):
+        """Get the request information"""
+
+        headers = self.facebook.driver.execute_script(
+            """var req = new XMLHttpRequest();
+            req.open('GET', document.location, false);
+            req.send(null);
+            return req.getAllResponseHeaders()"""
+            )
+        headers = headers.splitlines()
+        print(headers)
+
+        ##  Print request headers
+        for request in self.facebook.driver.requests:
+            print(
+                request.url,
+                request.params,
+                request.querystring,
+                sep='\n'+'-'*40
+            )
+
+    def open_new_tab(self):
+        """Open a new tab with deleting cookies"""
+        # Delete all cookies
+        self.facebook.driver.delete_all_cookies()
+        # self.facebook.driver.execute_script(f"""window.open("{self.facebook.website_url}","_blank")""")              
+        self.facebook.driver.execute_script(f"""window.open("","_blank")""")              
+        self.facebook.driver.close()
+        self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
 
     def run(self):
+        """Main runnable method to make interaction in the facebook website"""
         try:
             for ind, row in self.facebook.accounts_data.iterrows():
                 # start = perf_counter()
 
 
                 # Change MAC address (from execl or generate new one)
-                new_mac_address = self.change_mac_addr(row['Mac Address'])
-                # desire_mac_address = str(row['Mac address']) if(type(row['Mac address']) == str) else None
-                # current_mac_address, new_mac_address = changeMacAddress(self.adapter_name, self.adapter_type, desire_mac_address)
-
-                # print(f"Previouse MAC address: {current_mac_address}")
-                # print(f"New MAC address: {new_mac_address}")
-
+                new_mac_address = self.change_mac_addr(row['Mac address'])
 
 
                 # Put the new or old mac address in the related cell
                 self.facebook.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
 
-                # # Keep running inside a loop until check if there is an enternet connection
-                # while(True):
-                #     connected = self.check_internet_connection(url=self.facebook.website)
-                #     if(connected):
-                #         print("Connected to Enternet")
-                #         break
-
+                # Check internet connection
                 connected_state = self.is_connected()
 
-                print("="*40)
                 
+                # Login to the account
+                self.facebook.dir_login(['Email'], row['Facebook password'], self.url)
 
-                self.facebook.login(email=row['Email'], password=row['Facebook password'])
-
-                # headers = self.facebook.driver.execute_script(
-                #     """var req = new XMLHttpRequest();
-                #     req.open('GET', document.location, false);
-                #     req.send(null);
-                #     return req.getAllResponseHeaders()"""
-                #     )
-                # headers = headers.splitlines()
-                # print(headers)
-
-                # ##  Print request headers
-                # for request in self.facebook.driver.requests:
-                #     print(
-                #         request.url,
-                #         request.params,
-                #         request.querystring,
-                #         sep='\n'+'-'*40
-                #     )
-
+                
 
                 self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
-                if(self.facebook.isAccountActive()):
+                if(self.facebook.is_account_active()):
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
-                    self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
+                    self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.get_profile_link()
                     
-                    if(self.work_type == 'Likes on post'):
-                        self.facebook.addLikeOnPost(self.url)
+                    self.do_task()
                     
-                    elif(self.work_type == 'Comments on post'):
-                        self.facebook.addCommentOnPost(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
-
-                    elif(self.work_type == 'Likes and comments on post'):
-                        self.facebook.addLikeOnPost(self.url)
-                        self.facebook.addCommentOnPost(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
-                        
-                    elif(self.work_type == 'Page following'):
-                            self.facebook.addPageFollowing(self.url)
-
-                    self.facebook.logout()
+                    # self.facebook.logout()
                     self.counter += 1
                     self.passed_acc_counter.emit(self.counter)
 
                 else:
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
-                    self.facebook.logout(active_acc=False)
+                    # self.facebook.logout(active_acc=False)
 
 
                 # finish = perf_counter()
                 # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
-                self.facebook.driver.delete_all_cookies()
-                #
-                self.facebook.driver.execute_script(f"""window.open("{self.facebook.website}","_blank")""")              
-                self.facebook.driver.close()
-                self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
-
-
-                
-
+                self.open_new_tab()
+               
+            
         except (NoSuchWindowException, WebDriverException):
             self.run_error.emit(row['Id'], row['Full name'])
         
@@ -206,6 +191,34 @@ class UIWorker(ABC, QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
 
+    @abstractmethod
+    def do_task(self):
+        pass
+
+class LikeOnPost(FacebookInteraction):
+    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, url: str, parent: QTabWidget):
+        super().__init__(driver, mac_changer, accounts_file_path, accounts_data, None, url, parent)
+
+    def do_task(self):
+        self.facebook.add_like_on_post(self.url)
+
+
+class CommentOnPost(FacebookInteraction):
+    def do_task(self):
+        self.facebook.add_comment_on_post(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+
+class LikeAndCommentOnPost(FacebookInteraction):
+    def do_task(self):
+        self.facebook.add_like_on_post(self.url)
+        self.facebook.add_comment_on_post(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
+    
+
+class PageFollowing(FacebookInteraction):
+    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, url: str, parent: QTabWidget):
+        super().__init__(driver, mac_changer, accounts_file_path, accounts_data, None, url, parent)
+
+    def do_task(self):
+        self.facebook.add_page_following(self.url)
 
   
 class AddMulitpleFriendsWorker(QtCore.QThread):

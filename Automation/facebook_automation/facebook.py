@@ -3,14 +3,14 @@ This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
 
-import logging
 from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.ui import Select
-from Automator.Auto_Core.WebAutomation import WebDriver, WebSiteAutomator
+from Automation.core.website_automator import WebSiteAutomator
+from Automation.core.drivers import CustomeWebDriver
 
 import re
 import time
@@ -21,13 +21,14 @@ from datetime import datetime
 class FacbookAutomator(WebSiteAutomator):
     """Parent class automator"""
 
-    def __init__(self, driver: WebDriver, accounts_file_path, accounts_data, comments_data = None) -> None:
+    def __init__(self, driver: CustomeWebDriver, accounts_file_path, accounts_data, comments_data = None) -> None:
         
         self._NEW_ACCOUNT_BUTTON_XPTH = "//a[@role='button' and @class= '_42ft _4jy0 _6lti _4jy6 _4jy2 selected _51sy']"
 
         self._LOGIN_EMAIL_TEXTBOX_XPATH = "//input[@name = 'email']"
         self._LOGIN_PASSOWRD_TEXTBOX_XPATH = "//input[@name = 'pass']"
         self._LOGIN_BUTTON_XPATH = "//button[@name='login']"
+        self._DIR_LOGIN_BUTTON_XPATH = "//button[@value='Log In' and @type='submit']"
 
         self._SIGNUP_FIRST_NAME_TEXTBOX_XPATH = "//input[@name = 'firstname']"
         self._SIGNUP_LAST_NAME_TEXTBOX_XPATH = "//input[@name = 'lastname']"
@@ -96,8 +97,6 @@ class FacbookAutomator(WebSiteAutomator):
 
         super().__init__(driver, self.website_url) 
 
-
-    
     def sign_up(self, first_name:str, last_name:str, email:str, password:str, date_of_birth, gender):
         """Sign up for new facebook account"""
         try:
@@ -157,6 +156,25 @@ class FacbookAutomator(WebSiteAutomator):
         except TimeoutException as e:
             pass
     
+    def dir_login(self, email:str, password:str, url:str):
+        """Login into an account directly throught page"""
+
+        self.driver.get(url)
+
+        # Search for email textBox, password textBox, and login button
+        try:
+            email_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_EMAIL_TEXTBOX_XPATH)))
+            password_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_PASSOWRD_TEXTBOX_XPATH)))
+            login_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._DIR_LOGIN_BUTTON_XPATH)))
+
+            email_textBox.send_keys(email)
+            password_textBox.send_keys(password)
+            login_button.click()
+            
+
+        except TimeoutException as e:
+            print(ex)
+
     def logout(self, logout_button_xpath2=None):
         """Logout from account"""
         # Search for the menu button and logout button    
@@ -222,6 +240,8 @@ class FacbookAutomator(WebSiteAutomator):
         """Add like to a post"""
         try:
             WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
+
+            # Not navigate to again to the url if it opened previously
             if(self.driver.current_url != post_path):
                 self.driver.get(post_path)
 

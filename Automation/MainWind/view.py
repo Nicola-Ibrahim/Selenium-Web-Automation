@@ -1,4 +1,4 @@
-from Automator.ui.MainUI.ui_Main_UI import Ui_MainWindow
+from Automation.MainWind.templates.MainUI.ui_Main_UI import Ui_MainWindow
 
 from PyQt5 import QtWidgets
 

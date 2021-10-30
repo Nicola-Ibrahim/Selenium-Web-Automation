@@ -1,10 +1,12 @@
 
 import pandas as pd
+from Automation.core.ChangeMac import EthernetMacChanger, WifiMacChanger
 
-from Automator.Facebook.model import FacebookAccountsModel, FacebookAccountsSortoModel
-from Automator.Facebook.threads import AddMulitpleFriendsWorker, UIWorker
-from Automator.ui.FacebookUI.ui_Facebook_UI import Ui_MainWindow
-from Automator.Auto_Core.WebAutomation import splitting
+from Automation.facebook_automation.model import FacebookAccountsModel, FacebookAccountsSortoModel
+from Automation.facebook_automation.threads import AddMulitpleFriendsWorker, LikeOnPost, LikeAndCommentOnPost, CommentOnPost, PageFollowing
+from Automation.facebook_automation.templates.FacebookUI.ui_Facebook_UI import Ui_MainWindow
+from Automation.core.drivers import ChromeWebDriver, FirefoxWebDriver
+from Automation.core.website_automator import enhanced_splitting 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -185,13 +187,16 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.comments_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook comments file path")
             return
 
-        
-        self.driver_type = self.driver_type_comboBox.currentText()
         self.adapter_name = self.adapter_name_txt.text()
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame'))
     
     def addCommentsOnPostUIworker(self):
         """Add comments on a post"""
+
+        # Reset error text boxe
+        self.run_error_lbl1.setText('')
+        self.run_error_lbl1.setStyleSheet('')
+
         url = self.post_url_txt1.text()
         start_num = self.start_acc_range_txt1.text()
         end_num = self.end_acc_range_txt1.text()
@@ -236,19 +241,33 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
+        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
         # Take commnets data as selected comments type data 
         comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
         
         self.add_likes_run_btn.setEnabled(False)
 
+        
+        # Get the adapter name
+        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
+            mac_changer = WifiMacChanger(self.adapter_name)
+            
+        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
+            mac_changer = EthernetMacChanger(self.adapter_name)
+        
+        # Initializing a driver
+        if(self.driver_type_comboBox.currentText() == 'Chrome'):
+            driver = ChromeWebDriver()
+        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
+            driver = FirefoxWebDriver()
 
         # Creating threads
         for i in range(num_of_workers):
             
             # worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
-            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Comments on post', self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            
+            worker = CommentOnPost(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
             worker.finished.connect(worker.deleteLater)
@@ -304,17 +323,30 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
+        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
 
         self.add_likes_run_btn.setEnabled(False)
 
 
+        # Get the adapter name
+        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
+            mac_changer = WifiMacChanger(self.adapter_name)
+            
+        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
+            mac_changer = EthernetMacChanger(self.adapter_name)
+        
+        # Initializing a driver
+        if(self.driver_type_comboBox.currentText() == 'Chrome'):
+            driver = ChromeWebDriver()
+        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
+            driver = FirefoxWebDriver()
+
+
         # Creating threads
         for i in range(num_of_workers):
             
-            # worker = LikesOnPostUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
-            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Likes on post', self.driver_type, self.accounts_file_path, accounts_data_splits[i], None, url, self)
+            worker = LikeOnPost(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.passed_acc_counter.connect(lambda count: self.likes_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
@@ -371,7 +403,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
+        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
         # Take commnets data as selected comments type data 
         comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
@@ -379,12 +411,25 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.add_likes_comments_run_btn.setEnabled(False)
 
 
+        # Get the adapter name
+        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
+            mac_changer = WifiMacChanger(self.adapter_name)
+            
+        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
+            mac_changer = EthernetMacChanger(self.adapter_name)
+        
+        # Initializing a driver
+        if(self.driver_type_comboBox.currentText() == 'Chrome'):
+            driver = ChromeWebDriver()
+        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
+            driver = FirefoxWebDriver()
+
+
         # Creating threads
         for i in range(num_of_workers):
             # Creating instance from the Facebook classs
             
-            # worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
-            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Likes and comments on post', self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            worker = LikeAndCommentOnPost(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.passed_acc_counter.connect(lambda count: self.comments_likes_counter_lbl.setText(f"{count}"))
             worker.finished.connect(lambda : self.add_likes_comments_run_btn.setEnabled(True))
             worker.finished.connect(self.initialValues)
@@ -436,17 +481,30 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = splitting(self.accounts_data[start_num:end_num], num_of_workers)
+        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
         
         
         self.add_page_followings_run_btn.setEnabled(False)
 
 
+        # Get the adapter name
+        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
+            mac_changer = WifiMacChanger(self.adapter_name)
+            
+        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
+            mac_changer = EthernetMacChanger(self.adapter_name)
+        
+        # Initializing a driver
+        if(self.driver_type_comboBox.currentText() == 'Chrome'):
+            driver = ChromeWebDriver()
+        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
+            driver = FirefoxWebDriver()
+            
         # Creating threads
         for i in range(num_of_workers):
             
             # worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
-            worker = UIWorker(self.adapter_name, self.adapter_type_comboBox.currentText(), 'Page following', self.driver_type, self.accounts_file_path, accounts_data_splits[i], None, url, self)
+            worker = PageFollowing(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.finished.connect(lambda : self.add_page_followings_run_btn.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
             worker.passed_acc_counter.connect(lambda count: self.page_followings_counter_lbl.setText(f"{count}"))
@@ -536,7 +594,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # split accounts data frame into subsets depending on the number of threads
         data = self.accounts_data[self.accounts_data['Group']==accounts_group].sample(num_of_comments)
-        accounts_data_splits = splitting(data, num_of_workers)
+        accounts_data_splits = enhanced_splitting(data, num_of_workers)
         
         # Take commnets data as selected comments type data 
         comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]

@@ -1,5 +1,5 @@
-from Automator.Facebook.view import AutomatorFacebookWindow
-from Automator.MainWind.view import AutomatorMainWindow
+from Automation.MainWind.view import AutomatorMainWindow
+from Automation.facebook_automation.controller import AutomatorFacebookWindow
 
 from PyQt5 import QtCore, QtWidgets
 import os 

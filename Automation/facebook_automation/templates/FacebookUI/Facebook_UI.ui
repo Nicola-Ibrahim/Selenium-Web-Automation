@@ -848,7 +848,7 @@ Likes</string>
            </size>
           </property>
           <property name="currentIndex">
-           <number>4</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="comments_frame">
            <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -2833,6 +2833,19 @@ Likes</string>
           </property>
          </spacer>
         </item>
+        <item row="1" column="0">
+         <spacer name="horizontalSpacer_27">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
         <item row="1" column="1">
          <widget class="QFrame" name="frame_8">
           <property name="frameShape">
@@ -2842,6 +2855,9 @@ Likes</string>
            <enum>QFrame::Raised</enum>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>7</number>
+           </property>
            <item>
             <widget class="QFrame" name="frame_9">
              <property name="frameShape">
@@ -2852,7 +2868,13 @@ Likes</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_7">
               <property name="spacing">
-               <number>30</number>
+               <number>20</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
               </property>
               <item>
                <widget class="QLabel" name="label_13">
@@ -2887,7 +2909,118 @@ Likes</string>
                 </item>
                </widget>
               </item>
+              <item>
+               <spacer name="horizontalSpacer_20">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame_25">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_21">
+              <property name="spacing">
+               <number>20</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_31">
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Adapter name</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="adapter_name_txt">
+                <property name="minimumSize">
+                 <size>
+                  <width>300</width>
+                  <height>50</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="Line" name="line">
+                <property name="minimumSize">
+                 <size>
+                  <width>50</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_33">
+                <property name="text">
+                 <string>Adapter type</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="adapter_type_comboBox">
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>50</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Ethernet</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Wi-Fi</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
             </widget>
            </item>
            <item>
@@ -2899,6 +3032,9 @@ Likes</string>
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_38">
+              <property name="spacing">
+               <number>20</number>
+              </property>
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -2948,6 +3084,13 @@ Likes</string>
             </widget>
            </item>
            <item>
+            <widget class="Line" name="line_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QFrame" name="frame_41">
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
@@ -2955,7 +3098,10 @@ Likes</string>
              <property name="frameShadow">
               <enum>QFrame::Raised</enum>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_39">
+             <layout class="QHBoxLayout" name="horizontalLayout_39" stretch="0,0,0,0">
+              <property name="spacing">
+               <number>20</number>
+              </property>
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -2972,6 +3118,13 @@ Likes</string>
                 </property>
                 <property name="text">
                  <string>Comments file</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="Line" name="line_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
@@ -3002,6 +3155,13 @@ Likes</string>
                </widget>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
             </widget>
            </item>
            <item>
@@ -3046,19 +3206,6 @@ Likes</string>
            </item>
           </layout>
          </widget>
-        </item>
-        <item row="1" column="0">
-         <spacer name="horizontalSpacer_27">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
         </item>
         <item row="1" column="2">
          <spacer name="horizontalSpacer_28">
