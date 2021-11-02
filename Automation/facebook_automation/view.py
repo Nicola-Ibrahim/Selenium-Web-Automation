@@ -1,26 +1,24 @@
+from typing import List
 from Automation.facebook_automation.templates.FacebookUI.ui_Facebook_UI import Ui_MainWindow
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
-    def __init__(self, main_wind, controller, parent=None):
+class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self, controller, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
-        self.main_wind = main_wind
-        self.controller: AutomatorFacebookWindow = controller
+
+        self.controller = controller
 
         self.setupUi(self)
-        
-        self.uiChanges()
-        self.initialValues()
-        self.handleButtons()
-        self.regexValidation()
+
+        self.custome_ui_changes()
+        self.handle_buttons()
+        self.regex_validation()
     
 
     def closeEvent(self, event):
-    
         """UI close envet handler"""
-        
-
+    
         reply = QtWidgets.QMessageBox.question(
             self,
             "Close",
@@ -29,13 +27,14 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         if reply == QtWidgets.QMessageBox.Yes:
             event.accept()
-            if(self.main_wind != None):
-                self.main_wind.show()
+            if(self.controller.main_wind != None):
+                self.controller.main_wind.show()
         else:
             event.ignore()
 
-    def ui_changes(self):
+    def custome_ui_changes(self):
         """UI changes after run the program"""
+
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame'))
         self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame'))
         
@@ -45,7 +44,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.accounts_tableView.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignHCenter)
 
 
-        self.settings.setValue('current_acc_ind', 1)
+        # self.controller.settings.setValue('current_acc_ind', 1)
 
         # self.group_btn.hide()
         # Centrize the dialog
@@ -68,7 +67,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.groups_friends_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_add_friends_frame')))
         self.groups_comms_likes_btn.clicked.connect(lambda : self.accounts_groups_stackedWidget.setCurrentWidget(self.accounts_groups_stackedWidget.findChild(QtWidgets.QWidget, 'acc_groups_likes_comments_frame')))
 
-        self.groups_btn.clicked.connect(self.dispFacebookAccounts)
+        self.groups_btn.clicked.connect(self.controller.show_facebook_accounts)
 
         # Run buttons
         self.add_comments_run_btn.clicked.connect(self.controller.add_comments_on_post)
@@ -81,13 +80,14 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
        
         
         # load accounts buttons
-        self.load_accounts_file_btn.clicked.connect(self.controller.readAccountDataFile)
-        self.load_commetns_file_btn.clicked.connect(self.controller.readCommentsDataFile)
+        self.load_accounts_file_btn.clicked.connect(self.controller.set_accounts_file_path)
+        self.load_commetns_file_btn.clicked.connect(self.controller.set_comments_file_path)
         
         
-        self.next_btn.clicked.connect(self.initial_facebook_values)
 
+        # Facebook main window buttons
         self.return_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
+        self.next_btn.clicked.connect(self.controller.initial_facebook_values)
 
         # self.post_url_txt5.textChanged['QString'].connect(self.updateGroup)
 
@@ -132,20 +132,22 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.adapter_name_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter adapter name")
             return
 
-        elif(self.accounts_data is None):
+        elif(self.accounts_file_txt.text() is None):
             self.accounts_file_txt.setFocus()
             QtWidgets.QToolTip.showText(self.accounts_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook accounts file path")
             return
 
-        elif(self.comments_data is None):
+        elif(self.comments_file_txt.text() is None):
             self.comments_file_txt.setFocus()
             QtWidgets.QToolTip.showText(self.comments_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook comments file path")
             return
 
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame'))
+        
+        return True
 
     def check_comments_on_post_values(self):
-        """Add comments on a post"""
+        """Check if any of comments panel's textBoxes is empty"""
 
         # Reset error text boxe
         self.run_error_lbl1.setText('')
@@ -183,9 +185,23 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.comments_type_comboBox1.setFocus()
             QtWidgets.QToolTip.showText(self.comments_type_comboBox1.mapToGlobal(QtCore.QPoint(0,10)),"Enter comments type")
             return
-    
+
+        
+        start_num = int(start_num) - 1
+        end_num = int(end_num)
+
+        if(end_num <= start_num):
+            self.end_acc_range_txt1.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt1.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
+            return
+
+        # Disable run button
+        self.add_comments_run_btn.setEnabled(False)
+
+        return True
+
     def check_likes_on_post_values(self):
-        """Add likes on a post"""
+        """Check if any of likes panel's textBoxes is empty"""
 
         # Reset error text boxe
         self.run_error_lbl2.setText('')
@@ -218,8 +234,23 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.num_of_workers_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
+        
+        start_num = int(start_num) - 1
+        end_num = int(end_num)
+
+        if(end_num <= start_num):
+            self.end_acc_range_txt2.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt2.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
+            return
+
+        # Disable run button
+        self.add_likes_run_btn.setEnabled(False)
+
+        return True
+
     def check_likes_comments_on_post_values(self):
-        """Add likes and comments on a post"""
+        """Check if any of likes and comments panel's textBoxes is empty"""
+
         url = self.post_url_txt3.text()
         start_num = self.start_acc_range_txt3.text()
         end_num = self.end_acc_range_txt3.text()
@@ -253,8 +284,24 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.comments_type_comboBox2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
             return
 
+
+        start_num = int(start_num) -1 
+        end_num = int(end_num)
+
+        if(end_num <= start_num):
+            self.end_acc_range_txt3.setFocus()
+            QtWidgets.QToolTip.showText(self.end_acc_range_txt3.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
+            return
+
+
+        # Disable run button
+        self.add_likes_comments_run_btn.setEnabled(False)
+
+        return True
+
     def check_add_page_following_values(self):
-        """Add likes on a post"""
+        """Check if any of page following textBoxes is empty"""
+        
         url = self.page_url_txt4.text()
         start_num = self.start_acc_range_txt4.text()
         end_num = self.end_acc_range_txt4.text()
@@ -265,8 +312,6 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.page_url_txt4.setFocus()
             QtWidgets.QToolTip.showText(self.page_url_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter url")
             return
-        
-        
         
         elif(start_num == ''):
             self.start_acc_range_txt4.setFocus()
@@ -291,4 +336,34 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.end_acc_range_txt4.mapToGlobal(QtCore.QPoint(0,10)),"set value bigger than start value")
             return
 
-       
+        
+        # Disable run button
+        self.add_page_followings_run_btn.setEnabled(False)
+
+        return True
+
+    def set_accounts_model(self, model: QtCore.QSortFilterProxyModel):
+        """Link accountes model to related view"""
+
+        # Change current widget
+        self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'accounts_groups_frame'))
+        
+        # Link view with related model
+        self.accounts_tableView.setModel(model)
+        
+
+        # Change comboBox selected item actions
+        self.groups_comboBox1.currentTextChanged['QString'].connect(lambda group_name: self.controller.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
+        self.groups_comboBox2.currentTextChanged['QString'].connect(lambda group_name: self.controller.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
+
+    def set_accounts_groups(self, groups: List[str] = None):
+        """Set accounts groups in group comboBox"""
+        for groups in (self.groups_comboBox1, self.groups_comboBox2):
+            groups.clear()
+            groups.addItems([''] + groups)
+    
+    def set_comments_in_comboBoxes(self, comments_type: List[str] = None):
+        """Set type of comments in comboBoxes"""
+        for comm_type in (self.comments_type_comboBox1, self.comments_type_comboBox2, self.comments_type_comboBox3):
+            comm_type.clear()
+            comm_type.addItems([''] + comments_type)

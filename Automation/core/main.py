@@ -1,5 +1,5 @@
 from Automation.MainWind.view import AutomatorMainWindow
-from Automation.facebook_automation.controller import AutomatorFacebookWindow
+from Automation.facebook_automation.controller import FacebookController
 
 from PyQt5 import QtCore, QtWidgets
 import os 
@@ -40,6 +40,31 @@ def Main_run():
     main_wind = AutomatorFacebookWindow(None)
     
     main_wind.show()
+
+    # Run the event loop
+    sys.exit(app.exec_())
+
+
+def facbook_main_run():
+
+    # Adjust window to screen
+    os.environ["QtCore.QT_AUTO_SCREEN_SCALE_FACTOR"] = '1'
+    # Enable High DPI display with PyQt5
+    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+    if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+    
+    
+    # Create the application
+    app = QtWidgets.QApplication(sys.argv)
+
+    
+
+    controller = FacebookController(None)
+    
+    # main_wind.show()
 
     # Run the event loop
     sys.exit(app.exec_())
