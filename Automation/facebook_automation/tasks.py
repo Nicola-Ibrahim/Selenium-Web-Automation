@@ -1,6 +1,5 @@
 
 from abc import abstractmethod
-from typing import Union
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTabWidget
 from pandas.core.frame import DataFrame
@@ -152,7 +151,8 @@ class FacebookInteraction(QtCore.QThread):
 
                 
                 # Login to the account
-                self.facebook.dir_login(['Email'], row['Facebook password'], self.url)
+                self.facebook.login(row['Email'], row['Facebook password'])
+                # self.facebook.dir_login(row['Email'], row['Facebook password'], self.url)
 
                 
 
@@ -165,13 +165,12 @@ class FacebookInteraction(QtCore.QThread):
                     
                     self.do_task()
                     
-                    # self.facebook.logout()
                     self.counter += 1
                     self.passed_acc_counter.emit(self.counter)
 
                 else:
+                    print("not active")
                     self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
-                    # self.facebook.logout(active_acc=False)
 
 
                 # finish = perf_counter()
@@ -234,11 +233,10 @@ class AddMulitpleFriendsWorker(QtCore.QThread):
         """
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
+        self.facebook: FacebookInteraction = FacebookInteraction(driver_type, accounts_file_path, accounts_data)
         self.method = method
         self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
 
-        self.adapter_name = adapter_name
 
     def run(self):
         
@@ -317,7 +315,7 @@ class AcceptMulitpleFriendsWorker(QtCore.QThread):
        
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data)
+        self.facebook: FacebookInteraction = FacebookInteraction(driver_type, accounts_file_path, accounts_data)
         self.url = url
         self.comments_data = comments_data[comments_data['Type']==comments_type].loc[:, 'Comments'].values
         self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
@@ -375,7 +373,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
     def __init__(self, driver_type, accounts_file_path, accounts_data, comments_data, url, parent) :
         super().__init__(parent=parent)
 
-        self.facebook = Facebook(driver_type, accounts_file_path, accounts_data, comments_data)
+        self.facebook: FacebookInteraction = FacebookInteraction(driver_type, accounts_file_path, accounts_data, comments_data)
         self.url = url
         self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
 

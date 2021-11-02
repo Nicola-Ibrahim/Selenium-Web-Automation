@@ -3,6 +3,7 @@ This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
 
+from PyQt5 import QtCore
 from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -28,7 +29,7 @@ class FacbookAutomator(WebSiteAutomator):
         self._LOGIN_EMAIL_TEXTBOX_XPATH = "//input[@name = 'email']"
         self._LOGIN_PASSOWRD_TEXTBOX_XPATH = "//input[@name = 'pass']"
         self._LOGIN_BUTTON_XPATH = "//button[@name='login']"
-        self._DIR_LOGIN_BUTTON_XPATH = "//button[@value='Log In' and @type='submit']"
+        self._GO_LOGIN_BUTTON_XPATH = "/html/body/div[1]/div[3]/div[1]/div/div[2]/div[2]/div[1]/div/div[1]/div/div[2]/div[1]/a"
 
         self._SIGNUP_FIRST_NAME_TEXTBOX_XPATH = "//input[@name = 'firstname']"
         self._SIGNUP_LAST_NAME_TEXTBOX_XPATH = "//input[@name = 'lastname']"
@@ -163,17 +164,20 @@ class FacbookAutomator(WebSiteAutomator):
 
         # Search for email textBox, password textBox, and login button
         try:
-            email_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_EMAIL_TEXTBOX_XPATH)))
-            password_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_PASSOWRD_TEXTBOX_XPATH)))
-            login_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._DIR_LOGIN_BUTTON_XPATH)))
+            go_login_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, self._GO_LOGIN_BUTTON_XPATH))) 
+            go_login_button.click()
+
+            email_textBox = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, self._LOGIN_EMAIL_TEXTBOX_XPATH)))
+            password_textBox = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, self._LOGIN_PASSOWRD_TEXTBOX_XPATH)))
+            login_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self._LOGIN_BUTTON_XPATH)))
 
             email_textBox.send_keys(email)
             password_textBox.send_keys(password)
             login_button.click()
             
 
-        except TimeoutException as e:
-            print(ex)
+        except (TimeoutException or ElementNotInteractableException) as e:
+            print(e)
 
     def logout(self, logout_button_xpath2=None):
         """Logout from account"""
@@ -347,11 +351,15 @@ class FacbookAutomator(WebSiteAutomator):
         
     def is_account_active(self):
         """Check if an account is active"""
-        try:
+        # try:
             
-            label = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOCKED_PROFILE_TEXT_XPATH)))
-            if(label.text in ("تم تعطيل حسابك", "Your account has been disabled")):
-                return False
+        #     label = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._LOCKED_PROFILE_TEXT_XPATH)))
+        #     if(label.text in ("تم تعطيل حسابك", "Your account has been disabled")):
+        #         return False
 
-        except TimeoutException:
-            return True
+        # except TimeoutException:
+        #     return True
+
+        pat = QtCore.QRegularExpression(r'/checkpoint/')
+
+        return not pat.match(self.driver.current_url).hasMatch()

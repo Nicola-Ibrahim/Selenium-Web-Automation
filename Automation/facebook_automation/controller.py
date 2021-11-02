@@ -1,11 +1,12 @@
 
 import pandas as pd
-from Automation.core.ChangeMac import EthernetMacChanger, WifiMacChanger
+from pandas.core.frame import DataFrame
+from Automation.core.ChangeMac import EthernetMacChanger, MacChanger, WifiMacChanger
 
 from Automation.facebook_automation.model import FacebookAccountsModel, FacebookAccountsSortoModel
-from Automation.facebook_automation.threads import AddMulitpleFriendsWorker, LikeOnPost, LikeAndCommentOnPost, CommentOnPost, PageFollowing
+from Automation.facebook_automation.tasks import AddMulitpleFriendsWorker, LikeOnPost, LikeAndCommentOnPost, CommentOnPost, PageFollowing
 from Automation.facebook_automation.templates.FacebookUI.ui_Facebook_UI import Ui_MainWindow
-from Automation.core.drivers import ChromeWebDriver, FirefoxWebDriver
+from Automation.core.drivers import ChromeWebDriver, CustomeWebDriver, FirefoxWebDriver
 from Automation.core.website_automator import enhanced_splitting 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -19,21 +20,22 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
         self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
 
-        self.accounts_file_path = self.settings.value('facebook_accounts_file_path')
-        self.accounts_data = None
-        self.comments_file_path = self.settings.value('facebook_comments_file_path')
-        self.comments_data = None
-        self.driver_type = None
-        self.adapter_name = None
-
+        self.accounts_data: DataFrame = None
+        self.comments_data: DataFrame = None
+        self.mac_changer: MacChanger = None
+        self.driver: CustomeWebDriver = None
        
+        self.accounts_file_path: str = self.settings.value('facebook_accounts_file_path')
+        self.comments_file_path: str = self.settings.value('facebook_comments_file_path')
+
+        # Models initialization
         self.facebook_accounts_sort_model = None
         
         self.setupUi(self)
-        self.uiChanges()
-        self.handleButtons()
-        self.regexValidation()
-        # self.initialValues()
+        self.ui_changes()
+        self.handle_buttons()
+        self.regex_validation()
+        self.initial_main_values()
     
     def closeEvent(self, event):
     
@@ -53,7 +55,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
-    def uiChanges(self):
+    def ui_changes(self):
         """UI changes after run the program"""
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame'))
         self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame'))
@@ -77,7 +79,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #     self.readAccountDataFile()
         #     self.readCommentsDataFile()
         
-    def initialValues(self):
+    def set_facbook_values(self):
         """Initialize values for the text boxes"""
         self.start_acc_range_txt1.setText(str(self.settings.value('current_acc_ind')))
         self.start_acc_range_txt2.setText(str(self.settings.value('current_acc_ind')))
@@ -102,7 +104,16 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.page_followings_counter_lbl.setText('0')
         self.groups_likes_comments_counter_lbl.setText('0')
 
-    def handleButtons(self):
+    def initial_main_values(self):
+        # Initial values for adapter name and type
+        self.adapter_name_txt.setText(str(self.settings.value('adapter_name')))
+        self.adapter_type_comboBox.setCurrentText(str(self.settings.value('adapter_type')))
+
+    def set_main_values(self):
+        self.settings.setValue('adapter_name', self.adapter_name_txt.text())
+        self.settings.setValue('adapter_type', self.adapter_type_comboBox.currentText())
+
+    def handle_buttons(self):
 
         # Panels buttons
         self.comments_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame')))
@@ -115,10 +126,10 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.groups_btn.clicked.connect(self.dispFacebookAccounts)
 
         # Run buttons
-        self.add_comments_run_btn.clicked.connect(self.addCommentsOnPostUIworker)
-        self.add_likes_run_btn.clicked.connect(self.addLikesOnPostUIRun)
-        self.add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnPostUIRun)
-        self.add_page_followings_run_btn.clicked.connect(self.addPageFollowingUIRun)
+        self.add_comments_run_btn.clicked.connect(self.add_comments_on_post)
+        self.add_likes_run_btn.clicked.connect(self.add_likes_on_post)
+        self.add_likes_comments_run_btn.clicked.connect(self.add_likes_comments_on_post)
+        self.add_page_followings_run_btn.clicked.connect(self.add_page_following)
         self.groups_add_likes_comments_run_btn.clicked.connect(self.addLikes_CommentsOnFriendPostUIRun)
         self.add_friendship_run_btn.clicked.connect(self.addMulitpleFriendsUIRun)
 
@@ -129,13 +140,13 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.load_commetns_file_btn.clicked.connect(self.readCommentsDataFile)
         
         
-        self.next_btn.clicked.connect(self.facebookPanel)
+        self.next_btn.clicked.connect(self.initial_facebook_values)
 
         self.return_btn.clicked.connect(lambda : self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'Main_frame')))
 
         # self.post_url_txt5.textChanged['QString'].connect(self.updateGroup)
 
-    def regexValidation(self):
+    def regex_validation(self):
         """Apply regular expression to some UI elements"""
 
         # Set validation for checking accounts range
@@ -171,7 +182,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     ####################
     # Facebook Workers #
     ####################
-    def facebookPanel(self):
+    def initial_facebook_values(self):
         if(self.adapter_name_txt.text()==''):
             self.adapter_name_txt.setFocus()
             QtWidgets.QToolTip.showText(self.adapter_name_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter adapter name")
@@ -187,10 +198,26 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.comments_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook comments file path")
             return
 
-        self.adapter_name = self.adapter_name_txt.text()
         self.social_media_stackedWidget.setCurrentWidget(self.social_media_stackedWidget.findChild(QtWidgets.QWidget, 'facebook_frame'))
+
+
+        # Get the adapter name
+        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
+            self.mac_changer = WifiMacChanger(self.adapter_name_txt.text())
+            
+        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
+            self.mac_changer = EthernetMacChanger(self.adapter_name_txt.text())
+        
+        # Initializing a driver
+        if(self.driver_type_comboBox.currentText() == 'Chrome'):
+            self.driver = ChromeWebDriver()
+        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
+            self.driver = FirefoxWebDriver()
+
+        
+        self.set_main_values()
     
-    def addCommentsOnPostUIworker(self):
+    def add_comments_on_post(self):
         """Add comments on a post"""
 
         # Reset error text boxe
@@ -202,6 +229,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         end_num = self.end_acc_range_txt1.text()
         num_of_workers = self.num_of_workers_txt1.text()
         comments_type = self.comments_type_comboBox1.currentText()
+        
 
         # Check if any of the texts is empty
         if(url == ''):
@@ -249,27 +277,12 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.add_likes_run_btn.setEnabled(False)
 
         
-        # Get the adapter name
-        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
-            mac_changer = WifiMacChanger(self.adapter_name)
-            
-        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
-            mac_changer = EthernetMacChanger(self.adapter_name)
-        
-        # Initializing a driver
-        if(self.driver_type_comboBox.currentText() == 'Chrome'):
-            driver = ChromeWebDriver()
-        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
-            driver = FirefoxWebDriver()
-
         # Creating threads
         for i in range(num_of_workers):
-            
-            # worker = CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
-            
-            worker = CommentOnPost(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+                        
+            worker = CommentOnPost(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
-            worker.finished.connect(self.initialValues)
+            worker.finished.connect(self.set_facbook_values)
             worker.finished.connect(worker.deleteLater)
             worker.passed_acc_counter.connect(lambda count: self.comments_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl1.setStyleSheet("color: rgb(255,0,0);"))
@@ -277,7 +290,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
             worker.start()
   
-    def addLikesOnPostUIRun(self):
+    def add_likes_on_post(self):
         """Add likes on a post"""
 
         # Reset error text boxe
@@ -328,36 +341,21 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.add_likes_run_btn.setEnabled(False)
 
-
-        # Get the adapter name
-        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
-            mac_changer = WifiMacChanger(self.adapter_name)
-            
-        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
-            mac_changer = EthernetMacChanger(self.adapter_name)
-        
-        # Initializing a driver
-        if(self.driver_type_comboBox.currentText() == 'Chrome'):
-            driver = ChromeWebDriver()
-        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
-            driver = FirefoxWebDriver()
-
-
         # Creating threads
         for i in range(num_of_workers):
             
-            worker = LikeOnPost(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self)
+            worker = LikeOnPost(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.passed_acc_counter.connect(lambda count: self.likes_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
             worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
-            worker.finished.connect(self.initialValues)
+            worker.finished.connect(self.set_facbook_values)
             worker.finished.connect(worker.deleteLater)
             worker.finished.connect(lambda : self.likes_counter_lbl.setText('0'))
             
             worker.start()
 
-    def addLikes_CommentsOnPostUIRun(self):
+    def add_likes_comments_on_post(self):
         """Add likes and comments on a post"""
         url = self.post_url_txt3.text()
         start_num = self.start_acc_range_txt3.text()
@@ -411,35 +409,21 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.add_likes_comments_run_btn.setEnabled(False)
 
 
-        # Get the adapter name
-        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
-            mac_changer = WifiMacChanger(self.adapter_name)
-            
-        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
-            mac_changer = EthernetMacChanger(self.adapter_name)
-        
-        # Initializing a driver
-        if(self.driver_type_comboBox.currentText() == 'Chrome'):
-            driver = ChromeWebDriver()
-        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
-            driver = FirefoxWebDriver()
-
-
         # Creating threads
         for i in range(num_of_workers):
+
             # Creating instance from the Facebook classs
-            
-            worker = LikeAndCommentOnPost(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            worker = LikeAndCommentOnPost(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.passed_acc_counter.connect(lambda count: self.comments_likes_counter_lbl.setText(f"{count}"))
             worker.finished.connect(lambda : self.add_likes_comments_run_btn.setEnabled(True))
-            worker.finished.connect(self.initialValues)
+            worker.finished.connect(self.set_facbook_values)
             worker.finished.connect(worker.deleteLater)
             worker.run_error.connect(lambda ind, name : self.run_error_lbl3.setStyleSheet("color: rgb(255,0,0);"))
             worker.run_error.connect(lambda ind, name: self.run_error_lbl3.setText(f"Error occured at -> {ind} : {name}"))
             
             worker.start()
   
-    def addPageFollowingUIRun(self):
+    def add_page_following(self):
         """Add likes on a post"""
         url = self.page_url_txt4.text()
         start_num = self.start_acc_range_txt4.text()
@@ -486,25 +470,12 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.add_page_followings_run_btn.setEnabled(False)
 
-
-        # Get the adapter name
-        if(self.adapter_type_comboBox.currentText()=='Wi-Fi'):
-            mac_changer = WifiMacChanger(self.adapter_name)
-            
-        elif(self.adapter_type_comboBox.currentText()=='Ethernet'):
-            mac_changer = EthernetMacChanger(self.adapter_name)
-        
-        # Initializing a driver
-        if(self.driver_type_comboBox.currentText() == 'Chrome'):
-            driver = ChromeWebDriver()
-        elif(self.driver_type_comboBox.currentText() == 'FireFox'):
-            driver = FirefoxWebDriver()
             
         # Creating threads
         for i in range(num_of_workers):
             
             # worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], url, self)
-            worker = PageFollowing(driver, mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self)
+            worker = PageFollowing(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self)
             worker.finished.connect(lambda : self.add_page_followings_run_btn.setEnabled(True))
             worker.finished.connect(worker.deleteLater)
             worker.passed_acc_counter.connect(lambda count: self.page_followings_counter_lbl.setText(f"{count}"))
@@ -606,9 +577,9 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(num_of_workers):
             # Creating instance from the Facebook classs
             
-            worker = Likes_CommentsOnPostWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+            worker = LikeAndCommentOnPost(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
             worker.finished.connect(lambda : self.groups_add_likes_comments_run_btn.setEnabled(True))
-            worker.finished.connect(self.initialValues)
+            worker.finished.connect(self.set_facbook_values)
             worker.finished.connect(worker.deleteLater)
             worker.passed_acc_counter.connect(lambda count: self.groups_likes_comments_counter_lbl.setText(f"{count}"))
             worker.run_error.connect(lambda ind, name : self.run_error_lbl5.setStyleSheet("color: rgb(255,0,0);"))
@@ -667,7 +638,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             else:
                 # Reinialize values in text boxes
-                self.initialValues()
+                self.set_facbook_values()
 
 
                 # Set accounts groups in group comboBox
@@ -722,7 +693,7 @@ class AutomatorFacebookWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             else:
                 # Reinialize values in text boxes
-                self.initialValues()
+                self.set_facbook_values()
 
 
                 # Set file path in text boxes and
