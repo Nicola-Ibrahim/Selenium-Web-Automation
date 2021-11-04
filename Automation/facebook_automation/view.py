@@ -1,7 +1,8 @@
+from PyQt5 import QtCore, QtGui, QtWidgets
 from typing import List
+
 from Automation.facebook_automation.templates.FacebookUI.ui_Facebook_UI import Ui_MainWindow
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
 class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, controller, parent=None):
@@ -9,8 +10,11 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.controller = controller
 
-        self.setupUi(self)
+        self.setup()
 
+    def setup(self):
+
+        self.setupUi(self)
         self.custome_ui_changes()
         self.handle_buttons()
         self.regex_validation()
@@ -58,6 +62,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
         #     self.readCommentsDataFile()
         
     def handle_buttons(self):
+        """Handle buttons signals"""
 
         # Panels buttons
         self.comments_btn.clicked.connect(lambda : self.stackedWidget.setCurrentWidget(self.stackedWidget.findChild(QtWidgets.QWidget, 'comments_frame')))
@@ -127,17 +132,18 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
     # Facebook Workers #
     ####################
     def check_initial_facebook_values(self):
-        if(self.adapter_name_txt.text()==''):
+        if(self.adapter_name_txt.text() == ''):
             self.adapter_name_txt.setFocus()
             QtWidgets.QToolTip.showText(self.adapter_name_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter adapter name")
             return
+        
 
-        elif(self.accounts_file_txt.text() is None):
+        elif(self.accounts_file_txt.text() == ''):
             self.accounts_file_txt.setFocus()
             QtWidgets.QToolTip.showText(self.accounts_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook accounts file path")
             return
 
-        elif(self.comments_file_txt.text() is None):
+        elif(self.comments_file_txt.text() == ''):
             self.comments_file_txt.setFocus()
             QtWidgets.QToolTip.showText(self.comments_file_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter facebook comments file path")
             return
@@ -356,13 +362,13 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
         self.groups_comboBox1.currentTextChanged['QString'].connect(lambda group_name: self.controller.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
         self.groups_comboBox2.currentTextChanged['QString'].connect(lambda group_name: self.controller.facebook_accounts_sort_model.setAccountGroupFilter(group_name))
 
-    def set_accounts_groups(self, groups: List[str] = None):
+    def set_accounts_groups(self, groups: List[str]):
         """Set accounts groups in group comboBox"""
-        for groups in (self.groups_comboBox1, self.groups_comboBox2):
+        for groups_combo in (self.groups_comboBox1, self.groups_comboBox2):
             groups.clear()
-            groups.addItems([''] + groups)
+            groups_combo.addItems([''] + groups)
     
-    def set_comments_in_comboBoxes(self, comments_type: List[str] = None):
+    def set_comments_in_comboBoxes(self, comments_type: List[str]):
         """Set type of comments in comboBoxes"""
         for comm_type in (self.comments_type_comboBox1, self.comments_type_comboBox2, self.comments_type_comboBox3):
             comm_type.clear()
