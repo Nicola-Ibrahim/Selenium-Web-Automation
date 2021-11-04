@@ -361,5 +361,6 @@ class FacbookAutomator(WebSiteAutomator):
         #     return True
 
         pat = QtCore.QRegularExpression(r'/checkpoint/')
-
+        print(self.driver.current_url)
+        print(not pat.match(self.driver.current_url).hasMatch())
         return not pat.match(self.driver.current_url).hasMatch()
