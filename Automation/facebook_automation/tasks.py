@@ -1,27 +1,24 @@
 
-from abc import abstractmethod
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QTabWidget
 from pandas.core.frame import DataFrame
 
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from Automation.core.drivers import CustomeWebDriver
 
 from Automation.facebook_automation.facebook import FacbookAutomator
 from Automation.core.ChangeMac import MacChanger
+from Automation.core.drivers import CustomeWebDriver
 
-from time import sleep
-from emoji.core import emojize
-from numpy import isnan
 
 from itertools import combinations, groupby, permutations
 from operator import itemgetter
 
 import requests
+from enum import Enum
+from time import sleep
+from emoji.core import emojize
 
-from enum import Enum, auto
 
 def delete_cache(driver):
 	driver.execute_script("window.open('');")
@@ -42,14 +39,9 @@ def delete_cache(driver):
 	driver.switch_to.window(driver.window_handles[0]) # switch back
      
 
-
-
-class WorkerType(Enum):
-    LIKES_ON_POST = auto()
-    COMMENTS_ON_POST = auto()
-    LIKES_COMMENTS_ON_POST = auto()
-    PAGE_FOLLOWING_POST = auto()
-
+class AccountStatus(Enum):
+    INACTIVE = 'Inactive'
+    ACTIVE = 'Activer'
 
 class FacebookInteraction(QtCore.QThread):
     """Creating thread for interacting in facebook website"""
@@ -60,13 +52,13 @@ class FacebookInteraction(QtCore.QThread):
     # Sends number of passed accounts that work
     passed_acc_counter = QtCore.pyqtSignal(int)
 
-    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, comments_data: DataFrame, url: str, parent: QTabWidget) :
+    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, comments_data: DataFrame, url: str, parent) :
         super().__init__(parent=parent)
 
         self.facebook: FacbookAutomator = FacbookAutomator(driver, accounts_file_path, accounts_data, comments_data)
-        self.url = url
-        self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
-        self.counter = 0
+        self.url: str = url
+        self.settings: QtCore.QSettings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
+        self.counter: int = 0
         self.mac_changer: MacChanger = mac_changer
 
 
@@ -81,7 +73,7 @@ class FacebookInteraction(QtCore.QThread):
 
         return new_mac_address
 
-    def get_response(self, url:str, timeout:int = 3) -> bool:
+    def get_response(self, url:str, timeout:int = 10) -> bool:
         """Get a response from the url to check if there is any connectino"""
         try:
             #r = requests.get(url, timeout=timeout)
@@ -133,11 +125,15 @@ class FacebookInteraction(QtCore.QThread):
         self.facebook.driver.switch_to_window(self.facebook.driver.window_handles[0])
 
     def run(self):
-        """Main runnable method to make interaction in the facebook website"""
+        """Main runnable method to make interaction in Facebook website"""
+
         try:
+            # Looping to each account
             for ind, row in self.facebook.accounts_data.iterrows():
                 # start = perf_counter()
 
+                if(row['Account status'] == AccountStatus.INACTIVE.value):
+                    continue
 
                 # Change MAC address (from execl or generate new one)
                 new_mac_address = self.change_mac_addr(row['Mac address'])
@@ -152,16 +148,15 @@ class FacebookInteraction(QtCore.QThread):
                 
                 # Login to the account
                 self.facebook.login(row['Email'], row['Facebook password'])
-                # self.facebook.dir_login(row['Email'], row['Facebook password'], self.url)
 
-                
+                # self.facebook.dir_login(row['Email'], row['Facebook password'], self.url)
 
                 self.settings.setValue('current_acc_ind', ind+1)
 
                 # Check if the account is active
                 if(self.facebook.is_account_active()):
-                    self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
-                    self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.get_profile_link()
+                    self.facebook.sheet.cell(ind + 2, 9).value = 'Active'
+                    self.facebook.sheet.cell(ind + 2, 7).value = self.facebook.get_profile_link()
                     
                     self.do_task()
                     
@@ -169,8 +164,7 @@ class FacebookInteraction(QtCore.QThread):
                     self.passed_acc_counter.emit(self.counter)
 
                 else:
-                    print("not active")
-                    self.facebook.sheet.cell(ind + 2, 8).value = 'Inactive'
+                    self.facebook.sheet.cell(ind + 2, 9).value = 'Inactive'
 
 
                 # finish = perf_counter()
@@ -190,12 +184,11 @@ class FacebookInteraction(QtCore.QThread):
             self.facebook.worker_book.close()
             self.finished.emit()
 
-    @abstractmethod
     def do_task(self):
         pass
 
 class LikeOnPost(FacebookInteraction):
-    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, url: str, parent: QTabWidget):
+    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, url: str, parent):
         super().__init__(driver, mac_changer, accounts_file_path, accounts_data, None, url, parent)
 
     def do_task(self):
@@ -213,13 +206,16 @@ class LikeAndCommentOnPost(FacebookInteraction):
     
 
 class PageFollowing(FacebookInteraction):
-    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, url: str, parent: QTabWidget):
+    def __init__(self, driver: CustomeWebDriver, mac_changer: MacChanger, accounts_file_path: str, accounts_data: DataFrame, url: str, parent):
         super().__init__(driver, mac_changer, accounts_file_path, accounts_data, None, url, parent)
 
     def do_task(self):
         self.facebook.add_page_following(self.url)
 
-  
+
+
+
+
 class AddMulitpleFriendsWorker(QtCore.QThread):
     """Add many persons among each others at the same group"""
 
@@ -395,7 +391,7 @@ class Likes_CommentsOnFriendPostWorker(QtCore.QThread):
 
                 # Check if the account is active
                 if(self.facebook.isAccountActive()):
-                    self.facebook.sheet.cell(ind + 2, 8).value = 'Active'
+                    self.facebook.sheet.cell(ind + 2, 9).value = 'Active'
                     self.facebook.sheet.cell(ind + 2, 6).value = self.facebook.getProfileLink()
                     self.facebook.addLikeOnPost(self.url)
                     self.facebook.addCommentOnPost(self.url, emojize(self.facebook.comments_data.sample(1)['Comments'].values[0], use_aliases=True))
