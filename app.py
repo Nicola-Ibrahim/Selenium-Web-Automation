@@ -1,4 +1,4 @@
-from Automator.ui.main import uiMain
+from Automation.core.main import facebook_main_run
 
 if __name__ == '__main__':
-    uiMain()
+    facebook_main_run()
