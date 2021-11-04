@@ -1,17 +1,17 @@
 
 import pandas as pd
 from pandas.core.frame import DataFrame
+
 from Automation.core.ChangeMac import EthernetMacChanger, MacChanger, WifiMacChanger
-
 from Automation.facebook_automation.model import FacebookAccountsModel, FacebookAccountsSortoModel
-from Automation.facebook_automation.tasks import AddMulitpleFriendsWorker, LikeOnPost, LikeAndCommentOnPost, CommentOnPost, PageFollowing
+from Automation.facebook_automation.tasks import AddMulitpleFriendsWorker, LikeOnPost, LikeAndCommentOnPost, PageFollowing
 from Automation.core.drivers import ChromeWebDriver, CustomeWebDriver, FirefoxWebDriver
-from Automation.core.website_automator import enhanced_splitting 
-
-from PyQt5 import QtCore, QtWidgets
 
 from Automation.facebook_automation.view import FacebookView
 
+from PyQt5 import QtCore, QtWidgets
+
+from Automation.facebook_automation.workers import CommentsOnPostWorker, LikesOnPostWorker, PageFollowingWorker
 
 
 class FacebookController():
@@ -29,36 +29,53 @@ class FacebookController():
         self.mac_changer: MacChanger = None
         self.driver: CustomeWebDriver = None
        
-        
         self.accounts_file_path: str = None
         self.comments_file_path: str = None
+
 
         # Models initialization
         self.accounts_base_model: FacebookAccountsModel = None
         self.accounts_sort_model: FacebookAccountsSortoModel = None
         
-        self.initial_main_values()
-
-        # Show the facebook main windows
-        self.view.show()
+        self.setup()
     
+    def setup(self):
+        """Initial main values"""
 
- 
-    def initial_main_values(self):
-        # Initial values for adapter name and type
-        self.view.adapter_name_txt.setText(str(self.settings.value('adapter_name')))
-        self.view.adapter_type_comboBox.setCurrentText(str(self.settings.value('adapter_type')))
+        self.get_adapter_property()
 
         # Set paths in textBoxes
         self.read_accounts_file()
         self.read_comments_file()
-        
+        self.set_post_url_txtBoxes()
+        self.set_page_url_txtBoxes()
 
-    def set_main_values(self):
+        # Show the facebook main windows
+        self.view.show()
+
+    def set_post_url_txtBoxes(self):
+        
+        for txt_box in (
+            self.view.post_url_txt1,
+            self.view.post_url_txt2, 
+            self.view.post_url_txt3, 
+        ):
+            txt_box.setText(self.settings.value('post_url'))
+    
+    def set_page_url_txtBoxes(self):        
+        self.view.post_url_txt5.setText(self.settings.value('post_url'))
+
+    def get_adapter_property(self):
+        """Get adapter's properties values"""        
+        self.view.adapter_name_txt.setText(str(self.settings.value('adapter_name')))
+        self.view.adapter_type_comboBox.setCurrentText(str(self.settings.value('adapter_type')))
+
+    def set_adapter_property(self):
+        """Set adapter's properties values """
         self.settings.setValue('adapter_name', self.view.adapter_name_txt.text())
         self.settings.setValue('adapter_type', self.view.adapter_type_comboBox.currentText())
-
-    
+        self.settings.sync()
+  
     def set_facbook_values(self):
         """Initialize values for the text boxes"""
         self.view.start_acc_range_txt1.setText(str(self.settings.value('current_acc_ind')))
@@ -84,10 +101,17 @@ class FacebookController():
         self.view.page_followings_counter_lbl.setText('0')
         self.view.groups_likes_comments_counter_lbl.setText('0')
 
+    def save_post_url(self, url):
+        self.settings.setValue('post_url', url)
+    
+    def save_page_url(self, url):
+        self.settings.setValue('page_url', url)
+    
 
     ####################
     # Facebook Workers #
     ####################
+
     def initial_facebook_values(self):
 
         if(not self.view.check_initial_facebook_values()):
@@ -107,46 +131,38 @@ class FacebookController():
             self.driver = FirefoxWebDriver()
 
         
-        self.set_main_values()
+        self.set_adapter_property()
     
     def add_comments_on_post(self):
         """Add comments on a post"""
         
+        # Check if any of the text boxes is empty
         if(not self.view.check_comments_on_post_values()):
             return
 
         url = self.view.post_url_txt1.text()
         start_num = int(self.view.start_acc_range_txt1.text())
         end_num = int(self.view.end_acc_range_txt1.text())
-        num_of_workers = self.view.num_of_workers_txt1.text()
+        num_of_workers = int(self.view.num_of_workers_txt1.text())
         comments_type = self.view.comments_type_comboBox1.currentText()
         
 
-        
-        num_of_workers = int(num_of_workers)
-
-
-        # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
-        
-        # Take commnets data as selected comments type data 
-        comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
+        # Save post url
+        self.save_post_url(url)
         
 
-        
-        # Creating threads
-        for i in range(num_of_workers):
-                        
-            worker = CommentOnPost(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self.view)
-            worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
-            worker.finished.connect(self.set_facbook_values)
-            worker.finished.connect(worker.deleteLater)
-            worker.passed_acc_counter.connect(lambda count: self.comments_counter_lbl.setText(f"{count}"))
-            worker.run_error.connect(lambda ind, name : self.run_error_lbl1.setStyleSheet("color: rgb(255,0,0);"))
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl1.setText(f"Error occured at -> {ind} : {name}"))
-            
-            worker.start()
-  
+        # Creating threads                        
+        CommentsOnPostWorker(
+            num_of_workers,
+            self.driver, 
+            self.mac_changer, 
+            self.accounts_file_path, 
+            self.accounts_data[start_num:end_num], 
+            self.comments_data[self.comments_data['Type']==comments_type], 
+            url,
+            self.view,
+        )
+    
     def add_likes_on_post(self):
         """Add likes on a post"""
 
@@ -158,26 +174,19 @@ class FacebookController():
         end_num = int(self.view.end_acc_range_txt2.text())
         num_of_workers = int(self.view.num_of_workers_txt2.text())
 
+        # save post url in settings
+        self.save_post_url(url)
 
-
-        # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
-        
-
-
-        # Creating threads
-        for i in range(num_of_workers):
-            
-            worker = LikeOnPost(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self.view)
-            worker.passed_acc_counter.connect(lambda count: self.likes_counter_lbl.setText(f"{count}"))
-            worker.run_error.connect(lambda ind, name : self.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
-            worker.finished.connect(lambda : self.add_likes_run_btn.setEnabled(True))
-            worker.finished.connect(self.set_facbook_values)
-            worker.finished.connect(worker.deleteLater)
-            worker.finished.connect(lambda : self.likes_counter_lbl.setText('0'))
-            
-            worker.start()
+        # Creating threads                        
+        LikesOnPostWorker(
+            num_of_workers,
+            self.driver, 
+            self.mac_changer, 
+            self.accounts_file_path, 
+            self.accounts_data[start_num:end_num], 
+            url,
+            self.view,
+        )
 
     def add_likes_comments_on_post(self):
         """Add likes and comments on a post"""
@@ -193,28 +202,21 @@ class FacebookController():
         comments_type = self.view.comments_type_comboBox2.currentText()
         num_of_workers = int(self.view.num_of_workers_txt3.text())
 
-        # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
-        
-        # Take commnets data as selected comments type data 
-        comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
-        
+        # save post url in settings
+        self.save_post_url(url)
 
+        # Creating threads                        
+        LikeAndCommentOnPost(
+            num_of_workers,
+            self.driver, 
+            self.mac_changer, 
+            self.accounts_file_path, 
+            self.accounts_data[start_num:end_num], 
+            self.comments_data[self.comments_data['Type']==comments_type], 
+            url,
+            self.view,
+        )
 
-        # Creating threads
-        for i in range(num_of_workers):
-
-            # Creating instance from the Facebook classs
-            worker = LikeAndCommentOnPost(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, self.view)
-            worker.passed_acc_counter.connect(lambda count: self.comments_likes_counter_lbl.setText(f"{count}"))
-            worker.finished.connect(lambda : self.add_likes_comments_run_btn.setEnabled(True))
-            worker.finished.connect(self.set_facbook_values)
-            worker.finished.connect(worker.deleteLater)
-            worker.run_error.connect(lambda ind, name : self.run_error_lbl3.setStyleSheet("color: rgb(255,0,0);"))
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl3.setText(f"Error occured at -> {ind} : {name}"))
-            
-            worker.start()
-  
     def add_page_following(self):
         """Add likes on a post"""
 
@@ -226,23 +228,19 @@ class FacebookController():
         end_num = int(self.view.end_acc_range_txt4.text())
         num_of_workers = int(self.view.num_of_workers_txt4.text())
 
-        # split accounts data frame into subsets depending on the number of threads
-        accounts_data_splits = enhanced_splitting(self.accounts_data[start_num:end_num], num_of_workers)
-        
-    
-            
-        # Creating threads
-        for i in range(num_of_workers):
-            
-            # worker = PageFollowingUIWorker(self.driver_type, self.accounts_file_path, accounts_data_splits[i], self.view)
-            worker = PageFollowing(self.driver, self.mac_changer, self.accounts_file_path, accounts_data_splits[i], url, self.view)
-            worker.finished.connect(lambda : self.add_page_followings_run_btn.setEnabled(True))
-            worker.finished.connect(worker.deleteLater)
-            worker.passed_acc_counter.connect(lambda count: self.page_followings_counter_lbl.setText(f"{count}"))
-            worker.run_error.connect(lambda ind, name : self.run_error_lbl4.setStyleSheet("color: rgb(255,0,0);"))
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl4.setText(f"Error occured at -> {ind} : {name}"))
-            
-            worker.start()
+        # save post url in settings
+        self.save_page_url(url)
+
+        # Creating threads                        
+        PageFollowingWorker(
+            num_of_workers,
+            self.driver, 
+            self.mac_changer, 
+            self.accounts_file_path, 
+            self.accounts_data[start_num:end_num], 
+            url,
+            self.view,
+        )
 
     def addMulitpleFriendsUIRun(self):
         """Add friends"""
@@ -321,7 +319,7 @@ class FacebookController():
 
         # split accounts data frame into subsets depending on the number of threads
         data = self.accounts_data[self.accounts_data['Group']==accounts_group].sample(num_of_comments)
-        accounts_data_splits = enhanced_splitting(data, num_of_workers)
+        accounts_data_splits = self.splitting_fn(data, num_of_workers)
         
         # Take commnets data as selected comments type data 
         comments_data_slices = self.comments_data[self.comments_data['Type']==comments_type]
@@ -354,16 +352,17 @@ class FacebookController():
             group = self.accounts_data.loc[self.accounts_data['Profile path'].str.contains(pat = match), 'Group'].values[0]
             self.view.groups_comboBox2.setCurrentText(group)
 
+
+
     ##############
     # Read files #
     ##############
-
     def set_accounts_file_path(self):
         """Set accounts data file path"""
 
         # get the file path if it is not known
         if(self.accounts_file_path in (None, '')):
-            self.accounts_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
+            self.accounts_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self.view, caption='Open file',
                         directory = self.settings.value('facebook_accounts_file_path'),filter="XLSX files (*.xlsx)")
 
             self.settings.setValue('facebook_accounts_file_path', self.accounts_file_path)
@@ -375,8 +374,6 @@ class FacebookController():
         """Read accounts data file"""
 
         self.accounts_file_path = self.settings.value('facebook_accounts_file_path')
-
-       
 
         # check if the file extension is an Excel file
         reg = QtCore.QRegularExpression("\.xlsx$")
@@ -401,21 +398,17 @@ class FacebookController():
                 )
             self.view.accounts_file_txt.setText('')
             self.accounts_file_path = None
-            # self.read_accounts_file()    
 
         # Expection if file not found
         except FileNotFoundError as e:
             self.accounts_file_path = None
 
-            # Try to read file again
-            # self.read_accounts_file() 
 
         else:
             # Reinialize values in text boxes
             self.set_facbook_values()
 
-
-            # self.view.set_accounts_groups(self.accounts_data['Group'].unique().tolist())
+            self.view.set_accounts_groups(self.accounts_data['Group'].unique().tolist())
 
             # Set file path in text boxes and
             # change accounts file path text boxes properties
@@ -424,15 +417,12 @@ class FacebookController():
             self.view.accounts_file_txt.setText(text)
             self.view.accounts_file_txt.setStyleSheet("")
 
-
-    
-
     def set_comments_file_path(self):
         """Set comments file path"""
 
         # get the file path
         if(self.comments_file_path in (None, '')):
-            self.comments_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self,caption='Open file',
+            self.comments_file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self.view,caption='Open file',
                         directory = self.settings.value('facebook_comments_file_path'),filter="XLSX files (*.xlsx)")
             
             self.settings.setValue('facebook_comments_file_path', self.comments_file_path)
@@ -478,7 +468,7 @@ class FacebookController():
             # Reinialize values in text boxes
             self.set_facbook_values()
 
-            # self.view.set_comments_in_comboBoxes(self.comments_data['Type'].unique().tolist())
+            self.view.set_comments_in_comboBoxes(self.comments_data['Type'].unique().tolist())
 
 
             # Set file path in text boxes and
