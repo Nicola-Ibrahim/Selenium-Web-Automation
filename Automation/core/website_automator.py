@@ -4,36 +4,55 @@ If some forms as (login or logout ets...) have different shape then the method t
 that should be overriden.  
 """
 
-from Automation.core.drivers import CustomeWebDriver
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 
 from abc import ABC, abstractmethod
-import numpy as np
-import logging
-
 
 
 class WebSiteAutomator(ABC):
-    def __init__(self, driver: CustomeWebDriver, website_url:str) -> None:
+    """Main automator class that configs necessary functions to be inhereted"""
+    def __init__(self, driver: WebDriver, website_url:str) -> None:
+        self.driver: WebDriver = driver
         self.website_url = website_url
-        self.driver: CustomeWebDriver = driver.init_driver()
+    
+    def is_reachable(self):
+        """Check if the website can be reached"""
 
-        # Navigate to specific website_url
-        # self.driver.get(self.website_url)
+        REACHABLE_XPATH = "//span[contains(text(),'This site can’t be reached') or contains(text(),'No internet')]"
 
-    def init_logger(self, path:str):
+        try:
+            reachable_span = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, REACHABLE_XPATH)))            
+            
+        except TimeoutException as e:
+            self.driver.refresh()
+        
+        else:
+            return True
+    
+    def is_connnected(self):
+        """Check if there is a connection to the internet"""
+
+        # Keep running inside a loop until there is a connection
+        while(True):
+            connected = self.get_response(self.website_url)
+            if(connected):
+                print("Connected to Enternet")
+                print("="*40)
+                break
+        return True
+
+    
+    @abstractmethod
+    def init_logger(self):
         """Intial new logger
         path: logger file path
         """
-        
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-        
-        handler = logging.FileHandler(filename=path, mode='w')
-        handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s"))
-        logger.addHandler(handler)
 
-        return logger
-    
+        
     @abstractmethod
     def sign_up(self):
         pass
@@ -48,7 +67,6 @@ class WebSiteAutomator(ABC):
         """Logout from account"""
         pass
 
-    
     @abstractmethod
     def add_comment_on_post(self):
         """Add comment on a post"""
@@ -74,25 +92,27 @@ class WebSiteAutomator(ABC):
         """Accept person"""
         pass
 
-def simple_splitting(accounts_data, num_of_splits):
-    """ Splitting data frame into multiple frames depending on the number of threads"""
 
-    # Get thee df index 
-    df_indices = accounts_data.index.values
 
-    # Calculate the number of items in each splitted group
-    number_of_elements_each_group  = int(np.ceil(len(df_indices) / num_of_splits))
+# def simple_splitting(data, num_of_splits):
+#     """ Splitting data frame into multiple frames depending on the number of threads"""
 
-    # Gettign indices for each group
-    groups_indices = [group for group in np.split(df_indices, df_indices[0::number_of_elements_each_group]) if group.size != 0]
+#     # Get thee df index 
+#     df_indices = data.index.values
 
-    # Getting df groups
-    groups_items_df = [accounts_data.iloc[indx, :] for indx in groups_indices]
+#     # Calculate the number of items in each splitted group
+#     number_of_elements_each_group  = int(np.ceil(len(df_indices) / num_of_splits))
 
-    return groups_items_df
+#     # Gettign indices for each group
+#     groups_indices = [group for group in np.split(df_indices, df_indices[0::number_of_elements_each_group]) if group.size != 0]
 
-def enhanced_splitting(accounts_data, num_of_splits):
-    """ Splitting data frame into multiple frames depending on the number of threads"""
-    return np.array_split(accounts_data, num_of_splits)
+#     # Getting df groups
+#     groups_items_df = [data.iloc[indx, :] for indx in groups_indices]
+
+#     return groups_items_df
+
+# def enhanced_splitting(data, num_of_splits):
+#     """ Splitting data frame into multiple frames depending on the number of threads"""
+#     return np.array_split(data, num_of_splits)
 
     
