@@ -1,41 +1,45 @@
 
-import pandas as pd
-from pandas.core.frame import DataFrame
-
-from Automation.core.ChangeMac import EthernetMacChanger, MacChanger, WifiMacChanger
-from Automation.facebook_automation.model import FacebookAccountsModel, FacebookAccountsSortoModel
-from Automation.facebook_automation.tasks import AddMulitpleFriendsWorker, LikeOnPost, LikeAndCommentOnPost, PageFollowing
+from Automation.core.excel_file import FacebookAccountsExcelFile, FacebookCommentsExcelFile, SelectedDataWithComments, SelectedDataWithoutComments
+from Automation.core.mac_changer import EthernetMacChanger, MacChanger, WifiMacChanger
+from Automation.facebook_automation.tasks import CommentOnPost, LikeAndCommentOnPost, LikeOnPost, PageFollowing
 from Automation.core.drivers import ChromeWebDriver, CustomeWebDriver, FirefoxWebDriver
 
 from Automation.facebook_automation.view import FacebookView
+from Automation.facebook_automation.model import FacebookAccountsModel, FacebookAccountsSortoModel
 
 from PyQt5 import QtCore, QtWidgets
 
-from Automation.facebook_automation.workers import CommentsOnPostWorker, LikesOnPostWorker, PageFollowingWorker
+import os
+from enum import Enum
 
+class AdapterType(Enum):
+    WIFI = 'Wi-Fi'
+    ETHERNET = 'Ethernet'
+
+class DriverType(Enum):
+    CHROME = 'Chrome'
+    FIREFOX = 'FireFox'
 
 class FacebookController():
-    def __init__(self, main_wind):
+    def __init__(self):
         
+        # View intialization
         self.view: FacebookView = FacebookView(self)
-        
-        self.main_wind = main_wind
-
-        # self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
-        self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
-
-        self.accounts_data: DataFrame = None
-        self.comments_data: DataFrame = None
-        self.mac_changer: MacChanger = None
-        self.driver: CustomeWebDriver = None
-       
-        self.accounts_file_path: str = None
-        self.comments_file_path: str = None
-
 
         # Models initialization
         self.accounts_base_model: FacebookAccountsModel = None
         self.accounts_sort_model: FacebookAccountsSortoModel = None
+        
+        # Create Setting file
+        # self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
+        self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
+
+        self.mac_changer: MacChanger = None
+        self.custom_driver: CustomeWebDriver = None
+        
+       
+        self.accounts_file: FacebookAccountsExcelFile = None
+        self.comments_file: FacebookCommentsExcelFile = None
         
         self.setup()
     
@@ -43,6 +47,7 @@ class FacebookController():
         """Initial main values"""
 
         self.get_adapter_property()
+        self.get_driver_property()
 
         # Set paths in textBoxes
         self.read_accounts_file()
@@ -65,29 +70,43 @@ class FacebookController():
     def set_page_url_txtBoxes(self):        
         self.view.post_url_txt5.setText(self.settings.value('post_url'))
 
-    def get_adapter_property(self):
-        """Get adapter's properties values"""        
-        self.view.adapter_name_txt.setText(str(self.settings.value('adapter_name')))
-        self.view.adapter_type_comboBox.setCurrentText(str(self.settings.value('adapter_type')))
-
     def set_adapter_property(self):
         """Set adapter's properties values """
         self.settings.setValue('adapter_name', self.view.adapter_name_txt.text())
         self.settings.setValue('adapter_type', self.view.adapter_type_comboBox.currentText())
         self.settings.sync()
   
+    def get_adapter_property(self):
+        """Get adapter's properties values"""        
+        self.view.adapter_name_txt.setText(str(self.settings.value('adapter_name')))
+        self.view.adapter_type_comboBox.setCurrentText(str(self.settings.value('adapter_type')))
+
+    def set_driver_property(self):
+        """Set custom_driver's properties values"""
+        self.settings.setValue('driver_type', self.view.driver_type_comboBox.currentText())
+        self.settings.sync()
+  
+    def get_driver_property(self):
+        """Get custom_driver's properties values"""        
+        self.view.driver_type_comboBox.setCurrentText(str(self.settings.value('driver_type')))
+
+
     def set_facbook_values(self):
         """Initialize values for the text boxes"""
-        self.view.start_acc_range_txt1.setText(str(self.settings.value('current_acc_ind')))
-        self.view.start_acc_range_txt2.setText(str(self.settings.value('current_acc_ind')))
-        self.view.start_acc_range_txt3.setText(str(self.settings.value('current_acc_ind')))
-        self.view.start_acc_range_txt4.setText(str(self.settings.value('current_acc_ind')))
+        # self.view.start_acc_range_txt1.setText(str(self.settings.value('current_acc_ind')))
+        # self.view.start_acc_range_txt2.setText(str(self.settings.value('current_acc_ind')))
+        # self.view.start_acc_range_txt3.setText(str(self.settings.value('current_acc_ind')))
+        # self.view.start_acc_range_txt4.setText(str(self.settings.value('current_acc_ind')))
+        self.view.start_acc_range_txt1.setText('1')
+        self.view.start_acc_range_txt2.setText('1')
+        self.view.start_acc_range_txt3.setText('1')
+        self.view.start_acc_range_txt4.setText('1')
 
-        if(self.accounts_data is not None):
-            self.view.end_acc_range_txt1.setText(str(self.accounts_data.shape[0]))
-            self.view.end_acc_range_txt2.setText(str(self.accounts_data.shape[0]))
-            self.view.end_acc_range_txt3.setText(str(self.accounts_data.shape[0]))
-            self.view.end_acc_range_txt4.setText(str(self.accounts_data.shape[0]))
+        if(self.accounts_file.data is not None):
+            self.view.end_acc_range_txt1.setText(str(self.accounts_file.data.shape[0]))
+            self.view.end_acc_range_txt2.setText(str(self.accounts_file.data.shape[0]))
+            self.view.end_acc_range_txt3.setText(str(self.accounts_file.data.shape[0]))
+            self.view.end_acc_range_txt4.setText(str(self.accounts_file.data.shape[0]))
         
         self.view.num_of_workers_txt1.setText('1')
         self.view.num_of_workers_txt2.setText('1')
@@ -118,26 +137,27 @@ class FacebookController():
             return
         
         # Get the adapter name
-        if(self.view.adapter_type_comboBox.currentText()=='Wi-Fi'):
+        if(self.view.adapter_type_comboBox.currentText() == AdapterType.WIFI.value):
             self.mac_changer = WifiMacChanger(self.view.adapter_name_txt.text())
             
-        elif(self.view.adapter_type_comboBox.currentText()=='Ethernet'):
+        elif(self.view.adapter_type_comboBox.currentText() == AdapterType.ETHERNET.value):
             self.mac_changer = EthernetMacChanger(self.view.adapter_name_txt.text())
         
-        # Initializing a driver
-        if(self.view.driver_type_comboBox.currentText() == 'Chrome'):
-            self.driver = ChromeWebDriver()
-        elif(self.view.driver_type_comboBox.currentText() == 'FireFox'):
-            self.driver = FirefoxWebDriver()
+        # Initializing a custom_driver
+        if(self.view.driver_type_comboBox.currentText() == DriverType.CHROME.value):
+            self.custom_driver = ChromeWebDriver()
+        elif(self.view.driver_type_comboBox.currentText() == DriverType.FIREFOX.value):
+            self.custom_driver = FirefoxWebDriver()
 
         
         self.set_adapter_property()
+        self.set_driver_property()
     
     def add_comments_on_post(self):
         """Add comments on a post"""
         
         # Check if any of the text boxes is empty
-        if(not self.view.check_comments_on_post_values()):
+        if(not self.view.check_comments_on_post_args()):
             return
 
         url = self.view.post_url_txt1.text()
@@ -150,15 +170,18 @@ class FacebookController():
         # Save post url
         self.save_post_url(url)
         
+        self.view.comments_counter_lbl.setText('0')
+        
 
-        # Creating threads                        
-        CommentsOnPostWorker(
-            num_of_workers,
-            self.driver, 
+        selected_data = SelectedDataWithComments(self.accounts_file, start_num, end_num, self.comments_file, comments_type)
+
+        # Start driver
+    
+        CommentOnPost(
+            self.custom_driver, 
             self.mac_changer, 
-            self.accounts_file_path, 
-            self.accounts_data[start_num:end_num], 
-            self.comments_data[self.comments_data['Type']==comments_type], 
+            selected_data,
+            self.settings, 
             url,
             self.view,
         )
@@ -166,7 +189,7 @@ class FacebookController():
     def add_likes_on_post(self):
         """Add likes on a post"""
 
-        if(not self.view.check_likes_on_post_values()):
+        if(not self.view.check_likes_on_post_args()):
             return
 
         url = self.view.post_url_txt2.text()
@@ -177,13 +200,21 @@ class FacebookController():
         # save post url in settings
         self.save_post_url(url)
 
-        # Creating threads                        
-        LikesOnPostWorker(
-            num_of_workers,
-            self.driver, 
+        self.view.likes_counter_lbl.setText('0')
+
+
+
+        selected_data = SelectedDataWithoutComments(self.accounts_file, start_num, end_num)
+
+
+        # Start driver
+    
+
+        LikeOnPost(
+            self.custom_driver, 
             self.mac_changer, 
-            self.accounts_file_path, 
-            self.accounts_data[start_num:end_num], 
+            selected_data,
+            self.settings, 
             url,
             self.view,
         )
@@ -192,7 +223,7 @@ class FacebookController():
         """Add likes and comments on a post"""
 
         
-        if(not self.view.check_likes_comments_on_post_values()):
+        if(not self.view.check_likes_comments_on_post_args()):
             return
 
 
@@ -205,14 +236,16 @@ class FacebookController():
         # save post url in settings
         self.save_post_url(url)
 
+        self.view.comments_likes_counter_lbl.setText('0')
+
+
         # Creating threads                        
+        selected_data = SelectedDataWithComments(self.accounts_file, start_num, end_num, self.comments_file, comments_type)
         LikeAndCommentOnPost(
-            num_of_workers,
-            self.driver, 
+            self.custom_driver, 
             self.mac_changer, 
-            self.accounts_file_path, 
-            self.accounts_data[start_num:end_num], 
-            self.comments_data[self.comments_data['Type']==comments_type], 
+            selected_data,
+            self.settings, 
             url,
             self.view,
         )
@@ -220,7 +253,7 @@ class FacebookController():
     def add_page_following(self):
         """Add likes on a post"""
 
-        if(self.view.check_add_page_following_values()):
+        if(self.view.check_add_page_following_args()):
             return
 
         url = self.view.page_url_txt4.text()
@@ -231,16 +264,19 @@ class FacebookController():
         # save post url in settings
         self.save_page_url(url)
 
-        # Creating threads                        
-        PageFollowingWorker(
-            num_of_workers,
-            self.driver, 
+        self.view.page_followings_counter_lbl.setText('0')
+
+        # Creating threads 
+        selected_data = SelectedDataWithoutComments(self.accounts_file, start_num, end_num)
+        
+        PageFollowing(
+            self.custom_driver, 
             self.mac_changer, 
-            self.accounts_file_path, 
-            self.accounts_data[start_num:end_num], 
+            selected_data,
+            self.settings, 
             url,
             self.view,
-        )
+        )                       
 
     def addMulitpleFriendsUIRun(self):
         """Add friends"""
@@ -281,7 +317,6 @@ class FacebookController():
         """Add likes and comments on a post"""
         url = self.post_url_txt5.text()
         num_of_comments = self.num_of_likes_comms_txt.text()
-        num_of_workers = self.num_of_workers_txt5.text()
         comments_type = self.comments_type_comboBox3.currentText()
         accounts_group = self.groups_comboBox2.currentText()
 
@@ -297,12 +332,7 @@ class FacebookController():
             QtWidgets.QToolTip.showText(self.num_of_likes_comms_txt.mapToGlobal(QtCore.QPoint(0,10)),"Enter start number")
             return
         
-      
-        elif(num_of_workers == ''):
-            self.num_of_workers_txt5.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt5.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
-            return
-
+    
         elif(comments_type == ''):
             self.comments_type_comboBox3.setFocus()
             QtWidgets.QToolTip.showText(self.comments_type_comboBox3.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
@@ -314,7 +344,6 @@ class FacebookController():
             return
 
         num_of_comments = int(num_of_comments)
-        num_of_workers = int(num_of_workers)
 
 
         # split accounts data frame into subsets depending on the number of threads
@@ -327,19 +356,16 @@ class FacebookController():
         self.groups_add_likes_comments_run_btn.setEnabled(False)
 
 
-        # Creating threads
-        for i in range(num_of_workers):
-            # Creating instance from the Facebook classs
-            
-            worker = LikeAndCommentOnPost(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
-            worker.finished.connect(lambda : self.groups_add_likes_comments_run_btn.setEnabled(True))
-            worker.finished.connect(self.set_facbook_values)
-            worker.finished.connect(worker.deleteLater)
-            worker.passed_acc_counter.connect(lambda count: self.groups_likes_comments_counter_lbl.setText(f"{count}"))
-            worker.run_error.connect(lambda ind, name : self.run_error_lbl5.setStyleSheet("color: rgb(255,0,0);"))
-            worker.run_error.connect(lambda ind, name: self.run_error_lbl5.setText(f"Error occured at -> {ind} : {name}"))
-            
-            worker.start()
+        # Creating instance from the Facebook classs
+        worker = LikeAndCommentOnPost(self.driver_type, self.accounts_file_path, accounts_data_splits[i], comments_data_slices, url, self)
+        worker.finished.connect(lambda : self.groups_add_likes_comments_run_btn.setEnabled(True))
+        worker.finished.connect(self.set_facbook_values)
+        worker.finished.connect(worker.deleteLater)
+        worker.passed_acc_counter.connect(lambda count: self.groups_likes_comments_counter_lbl.setText(f"{count}"))
+        worker.run_error.connect(lambda ind, name : self.run_error_lbl5.setStyleSheet("color: rgb(255,0,0);"))
+        worker.run_error.connect(lambda ind, name: self.run_error_lbl5.setText(f"Error occured at -> {ind} : {name}"))
+        
+        worker.start()
     
     def update_group(self):
         """Updating group comboBox by capturing the account id from a url"""
@@ -380,10 +406,13 @@ class FacebookController():
         if(not reg.match(self.accounts_file_path).hasMatch()):
             return
 
+        # # check if the file is existed
+        # if(not os.path.isfile(self.accounts_file_path)):
+
+
 
         try:
-            self.accounts_data = pd.read_excel(self.accounts_file_path, usecols=['Id', 'Email','Email password','Full name','Facebook password','Gender','Profile path','Number of friends','Account status','Creator name', 'Group', 'Added Friends', 'Mac address'])
-            self.accounts_data.dropna(thresh=4, inplace=True)
+            self.accounts_file = FacebookAccountsExcelFile(self.accounts_file_path)
     
         # Exception if file is not follow the same structure as facebook accounts file
         except ValueError as e:
@@ -402,13 +431,14 @@ class FacebookController():
         # Expection if file not found
         except FileNotFoundError as e:
             self.accounts_file_path = None
+            
 
 
         else:
             # Reinialize values in text boxes
             self.set_facbook_values()
 
-            self.view.set_accounts_groups(self.accounts_data['Group'].unique().tolist())
+            self.view.set_accounts_groups(self.accounts_file.data['Group'].unique().tolist())
 
             # Set file path in text boxes and
             # change accounts file path text boxes properties
@@ -442,8 +472,10 @@ class FacebookController():
             return
 
         try: 
-            self.comments_data = pd.read_excel(self.comments_file_path, usecols=['Comments', 'Type'])
-            self.comments_data.dropna(inplace=True)
+            # self.comments_data = pd.read_excel(self.comments_file_path, usecols=['Comments', 'Type'])
+            # self.comments_data.dropna(inplace=True)
+
+            self.comments_file = FacebookCommentsExcelFile(self.comments_file_path)
 
             
         except ValueError:
@@ -468,7 +500,7 @@ class FacebookController():
             # Reinialize values in text boxes
             self.set_facbook_values()
 
-            self.view.set_comments_in_comboBoxes(self.comments_data['Type'].unique().tolist())
+            self.view.set_comments_in_comboBoxes(self.comments_file.data['Type'].unique().tolist())
 
 
             # Set file path in text boxes and
