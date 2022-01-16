@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:/Users/nicola/AppData/Local/Temp/Facebook_UIHoitgh.ui'
+# Form implementation generated from reading ui file 'e:\My files\Files and projs\Programming language\Python\python project\Web Automation project\Automation\facebook_automation\templates\FacebookUI\Facebook_UI.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -1406,11 +1406,13 @@ class Ui_MainWindow(object):
         self.gridLayout_3 = QtWidgets.QGridLayout(self.Main_frame)
         self.gridLayout_3.setObjectName("gridLayout_3")
         spacerItem26 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout_3.addItem(spacerItem26, 2, 1, 1, 1)
+        self.gridLayout_3.addItem(spacerItem26, 3, 1, 1, 1)
         spacerItem27 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_3.addItem(spacerItem27, 0, 1, 1, 1)
         spacerItem28 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_3.addItem(spacerItem28, 1, 0, 1, 1)
+        self.gridLayout_3.addItem(spacerItem28, 2, 0, 1, 1)
+        spacerItem29 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout_3.addItem(spacerItem29, 2, 2, 1, 1)
         self.frame_8 = QtWidgets.QFrame(self.Main_frame)
         self.frame_8.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_8.setFrameShadow(QtWidgets.QFrame.Raised)
@@ -1436,8 +1438,8 @@ class Ui_MainWindow(object):
         self.driver_type_comboBox.addItem("")
         self.driver_type_comboBox.addItem("")
         self.horizontalLayout_7.addWidget(self.driver_type_comboBox)
-        spacerItem29 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_7.addItem(spacerItem29)
+        spacerItem30 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem30)
         self.verticalLayout_2.addWidget(self.frame_9)
         self.line_2 = QtWidgets.QFrame(self.frame_8)
         self.line_2.setFrameShape(QtWidgets.QFrame.HLine)
@@ -1553,9 +1555,11 @@ class Ui_MainWindow(object):
         self.next_btn.setObjectName("next_btn")
         self.horizontalLayout.addWidget(self.next_btn)
         self.verticalLayout_2.addWidget(self.frame_6)
-        self.gridLayout_3.addWidget(self.frame_8, 1, 1, 1, 1)
-        spacerItem30 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_3.addItem(spacerItem30, 1, 2, 1, 1)
+        self.gridLayout_3.addWidget(self.frame_8, 2, 1, 1, 1)
+        self.label_37 = QtWidgets.QLabel(self.Main_frame)
+        self.label_37.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_37.setObjectName("label_37")
+        self.gridLayout_3.addWidget(self.label_37, 1, 1, 1, 1)
         self.social_media_stackedWidget.addWidget(self.Main_frame)
         self.verticalLayout_9.addWidget(self.social_media_stackedWidget)
         self.label_25 = QtWidgets.QLabel(self.centralwidget)
@@ -1571,7 +1575,7 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi(MainWindow)
-        self.social_media_stackedWidget.setCurrentIndex(1)
+        self.social_media_stackedWidget.setCurrentIndex(0)
         self.stackedWidget.setCurrentIndex(0)
         self.accounts_groups_stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -1652,5 +1656,6 @@ class Ui_MainWindow(object):
         self.label_36.setText(_translate("MainWindow", "Comments file"))
         self.load_commetns_file_btn.setText(_translate("MainWindow", "load"))
         self.next_btn.setText(_translate("MainWindow", "Next"))
+        self.label_37.setText(_translate("MainWindow", "Initial Properties"))
         self.label_25.setText(_translate("MainWindow", "Created by Eng. Nicola Ibrahim"))
 
