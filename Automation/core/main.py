@@ -45,7 +45,7 @@ def Main_run():
     sys.exit(app.exec_())
 
 
-def facbook_main_run():
+def facebook_main_run():
 
     # Adjust window to screen
     os.environ["QtCore.QT_AUTO_SCREEN_SCALE_FACTOR"] = '1'
@@ -61,10 +61,9 @@ def facbook_main_run():
     app = QtWidgets.QApplication(sys.argv)
 
     
-
-    controller = FacebookController(None)
     
-    # main_wind.show()
+    FacebookController()
+    
 
     # Run the event loop
     sys.exit(app.exec_())
