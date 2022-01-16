@@ -31,8 +31,8 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         if reply == QtWidgets.QMessageBox.Yes:
             event.accept()
-            if(self.controller.main_wind != None):
-                self.controller.main_wind.show()
+            # if(self.controller.main_wind != None):
+            #     self.controller.main_wind.show()
         else:
             event.ignore()
 
@@ -101,32 +101,27 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Set validation for checking accounts range
         validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('[1-9]\d+'))
-        self.start_acc_range_txt1.setValidator(validator)
-        self.start_acc_range_txt2.setValidator(validator)
-        self.start_acc_range_txt3.setValidator(validator)
-        self.start_acc_range_txt4.setValidator(validator)
+        numericals_lst = [
+            self.start_acc_range_txt1, 
+            self.start_acc_range_txt2, 
+            self.start_acc_range_txt3, 
+            self.start_acc_range_txt4, 
+            self.end_acc_range_txt1,
+            self.end_acc_range_txt2,
+            self.end_acc_range_txt3,
+            self.end_acc_range_txt4
+            ]
+        for numeric_txt in numericals_lst:
+            numeric_txt.setValidator(validator)
 
-        self.end_acc_range_txt1.setValidator(validator)
-        self.end_acc_range_txt2.setValidator(validator)
-        self.end_acc_range_txt3.setValidator(validator)
-        self.end_acc_range_txt4.setValidator(validator)
-        
-        # # Set validation for checking number of workers
-        # validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('[1-4]{1}'))
-        # self.num_of_workers_txt1.setValidator(validator)
-        # self.num_of_workers_txt2.setValidator(validator)
-        # self.num_of_workers_txt3.setValidator(validator)
-        # self.num_of_workers_txt4.setValidator(validator)
-        # self.num_of_workers_txt5.setValidator(validator)
 
         # Set validation for checking url values
         # validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('(https://www.)*(\w+)(.[a-zA-Z]{1,3})(\/[ء-يa-zA-Z0-9\.-=?_&#]*)*'))
         validator = QtGui.QRegularExpressionValidator(QtCore.QRegularExpression('(https://www.facebook.com)(.)*'))
-        self.post_url_txt1.setValidator(validator)
-        self.post_url_txt2.setValidator(validator)
-        self.post_url_txt3.setValidator(validator)
-        self.page_url_txt4.setValidator(validator)
-        self.post_url_txt5.setValidator(validator)
+        urls_lst = [self.post_url_txt1, self. post_url_txt2, self.post_url_txt3, self.page_url_txt4, self.post_url_txt5]
+        for url_txt in urls_lst:
+            url_txt.setValidator(validator)
+       
 
     ####################
     # Facebook Workers #
@@ -152,7 +147,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
         
         return True
 
-    def check_comments_on_post_values(self):
+    def check_comments_on_post_args(self):
         """Check if any of comments panel's textBoxes is empty"""
 
         # Reset error text boxe
@@ -162,14 +157,13 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
         url = self.post_url_txt1.text()
         start_num = self.start_acc_range_txt1.text()
         end_num = self.end_acc_range_txt1.text()
-        num_of_workers = self.num_of_workers_txt1.text()
         comments_type = self.comments_type_comboBox1.currentText()
-        
+
 
         # Check if any of the texts is empty
         if(url == ''):
-            self.post_url_txt2.setFocus()
-            QtWidgets.QToolTip.showText(self.post_url_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter url")
+            self.post_url_txt1.setFocus()
+            QtWidgets.QToolTip.showText(self.post_url_txt1.mapToGlobal(QtCore.QPoint(0,10)),"Enter url")
             return
         
         elif(start_num == ''):
@@ -182,10 +176,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.end_acc_range_txt1.mapToGlobal(QtCore.QPoint(0,10)),"Enter end number")
             return
         
-        elif(num_of_workers == ''):
-            self.num_of_workers_txt1.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt1.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
-            return
+       
         
         elif(comments_type == ''):
             self.comments_type_comboBox1.setFocus()
@@ -206,7 +197,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return True
 
-    def check_likes_on_post_values(self):
+    def check_likes_on_post_args(self):
         """Check if any of likes panel's textBoxes is empty"""
 
         # Reset error text boxe
@@ -216,7 +207,6 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
         url = self.post_url_txt2.text()
         start_num = self.start_acc_range_txt2.text()
         end_num = self.end_acc_range_txt2.text()
-        num_of_workers = self.num_of_workers_txt2.text()
 
 
         # Check if any of the texts is empty
@@ -234,11 +224,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
             self.end_acc_range_txt2.setFocus()
             QtWidgets.QToolTip.showText(self.end_acc_range_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter end number")
             return
-        
-        elif(num_of_workers == ''):
-            self.num_of_workers_txt2.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
-            return
+      
 
         
         start_num = int(start_num) - 1
@@ -254,13 +240,12 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return True
 
-    def check_likes_comments_on_post_values(self):
+    def check_likes_comments_on_post_args(self):
         """Check if any of likes and comments panel's textBoxes is empty"""
 
         url = self.post_url_txt3.text()
         start_num = self.start_acc_range_txt3.text()
         end_num = self.end_acc_range_txt3.text()
-        num_of_workers = self.num_of_workers_txt3.text()
         comments_type = self.comments_type_comboBox2.currentText()
 
         # Check if any of the texts is empty
@@ -280,11 +265,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.end_acc_range_txt3.mapToGlobal(QtCore.QPoint(0,10)),"Enter end number")
             return
         
-        elif(num_of_workers == ''):
-            self.num_of_workers_txt3.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt3.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
-            return
-
+       
         elif(comments_type == ''):
             self.comments_type_comboBox2.setFocus()
             QtWidgets.QToolTip.showText(self.comments_type_comboBox2.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
@@ -305,13 +286,12 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return True
 
-    def check_add_page_following_values(self):
+    def check_add_page_following_args(self):
         """Check if any of page following textBoxes is empty"""
         
         url = self.page_url_txt4.text()
         start_num = self.start_acc_range_txt4.text()
         end_num = self.end_acc_range_txt4.text()
-        num_of_workers = self.num_of_workers_txt4.text()
 
         # Check if any of the texts is empty
         if(url == ''):
@@ -329,10 +309,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QToolTip.showText(self.end_acc_range_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter end number")
             return
         
-        elif(num_of_workers == ''):
-            self.num_of_workers_txt4.setFocus()
-            QtWidgets.QToolTip.showText(self.num_of_workers_txt4.mapToGlobal(QtCore.QPoint(0,10)),"Enter number of workers")
-            return
+        
 
         start_num = int(start_num) - 1
         end_num = int(end_num)
