@@ -47,7 +47,10 @@ class MacChanger(ABC):
         """Change the mac address"""
 
         # We get the current mac address
-        current_mac_address = self.get_current_mac_address()
+        adapter_name, old_mac_address, transport_num = self.get_current_mac_address()
+        
+        if(desire_mac_address != None and desire_mac_address == ''.join(old_mac_address.lower().split('-'))):
+            return (old_mac_address, desire_mac_address)
 
         # We know the first part of the key, we'll append the folders where we'll search the values
         controller_key_part = r"SYSTEM\ControlSet001\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
@@ -84,8 +87,7 @@ class MacChanger(ABC):
 
                                 # We check to see if our "NetCfgInstanceId" is equal to our Transport number for our 
                                 # selected Mac Address.
-                            
-                                if name == "NetCfgInstanceId" and value == current_mac_address[2]:
+                                if name == "NetCfgInstanceId" and value == transport_num:
                                     # new_mac_address = mac_to_change_to[int(update_option)]
                                     
                                     if(desire_mac_address == None):
@@ -99,7 +101,7 @@ class MacChanger(ABC):
                                         new_mac_address = desire_mac_address
 
                                     winreg.SetValueEx(regkey, "NetworkAddress", 0, winreg.REG_SZ, new_mac_address)
-                                    print("Successly matched Transport Number")
+                                    # print("Successly matched Transport Number")
 
                                 else:
                                     # print("Unsuccessly matched Transport Number")
@@ -111,9 +113,9 @@ class MacChanger(ABC):
                     pass
 
         # run_last_part will be set to True or False based on above code.
-        if(current_mac_address is not []):
+        if(old_mac_address is not []):
             self.reset_adapter()
-            return (current_mac_address[1], new_mac_address)
+            return (old_mac_address, new_mac_address)
 
         return (None, None)
 
@@ -123,9 +125,9 @@ class MacChanger(ABC):
 
         # Change MAC address (from execl or generate new one)
         desire_mac_address = str(prev_mac_address) if(isinstance(prev_mac_address, str)) else None
-        current_mac_address, new_mac_address = self.change_address(desire_mac_address)
+        old_mac_address, new_mac_address = self.change_address(desire_mac_address)
 
-        print(f"Previouse MAC address: {current_mac_address}")
+        print(f"Previouse MAC address: {old_mac_address}")
         print(f"New MAC address: {new_mac_address}")
 
         return new_mac_address
@@ -172,9 +174,9 @@ class WifiMacChanger(MacChanger):
             if macFind != None and transportFind != None and nameFind != None:
                 
                 # We append a tuple with the Mac Address and the Transport name to a list.
-                current_mac_address = (nameFind.group(0), macFind.group(0),transportFind.group(0))
+                old_mac_address = (nameFind.group(0), macFind.group(0),transportFind.group(0))
 
-                return current_mac_address
+                return old_mac_address
     
 class EthernetMacChanger(MacChanger):
 
@@ -213,9 +215,9 @@ class EthernetMacChanger(MacChanger):
             if macFind != None and transportFind != None and nameFind != None:
                 
                 # We append a tuple with the Mac Address and the Transport name to a list.
-                current_mac_address = (nameFind.group(0), macFind.group(0),transportFind.group(0))
+                old_mac_address = (nameFind.group(0), macFind.group(0),transportFind.group(0))
 
-                return current_mac_address
+                return old_mac_address
     
 
 
