@@ -44,6 +44,10 @@ class FacebookInteraction(QtCore.QThread):
         self.settings: QtCore.QSettings = settings
         self.url: str = url
         self.counter: int = 0
+        self.parent = parent
+        
+        self.custom_driver.init_driver()
+        
         self.facebook: FacbookAutomator = FacbookAutomator(custom_driver.driver)
 
         self.setup_worker()
@@ -62,23 +66,15 @@ class FacebookInteraction(QtCore.QThread):
 
                 # Change MAC address (from execl or generate new one)
                 old_mac_address, new_mac_address = self.mac_changer.change_address(row['Mac address'])
-                print(old_mac_address, new_mac_address)
+                self.facebook.logger_wrt_info(f"\n\nOld mac address: {old_mac_address}, New mac address: {new_mac_address}")
 
                 # Put the new or old mac address in the related cell
                 self.selected_data.accounts_file.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
-
-                # Check internet connection
-                connected_state = self.facebook.is_connnected()
-
-
-                # Check internet connection
-                reachable_state = self.facebook.is_reachable()
 
                 
                 # Login to the account
                 self.facebook.login(row['Email'], row['Facebook password'])
 
-                # self.facebook.dir_login(row['Email'], row['Facebook password'], self.url)
 
                 # self.settings.setValue('current_acc_ind', ind+1)
 
@@ -114,7 +110,7 @@ class FacebookInteraction(QtCore.QThread):
             self.finished.emit()
 
 
-    def setup_worker(self):
+    def setup_worker(self):  
         self.connect()
         self.start()
 
@@ -131,7 +127,7 @@ class LikeOnPost(FacebookInteraction):
         self.facebook.add_like_on_post(self.url)
     
     def connect(self):
-        # self.passed_acc_counter.connect(lambda count: self.parent.likes_counter_lbl.setText(f"{count}"))
+        self.passed_acc_counter.connect(lambda count: self.parent.likes_counter_lbl.setText(f"{count}"))
         self.run_error.connect(lambda ind, name: self.parent.run_error_lbl2.setStyleSheet("color: rgb(255,0,0);"))
         self.run_error.connect(lambda ind, name: self.parent.run_error_lbl2.setText(f"Error occured at -> {ind} : {name}"))
         self.finished.connect(lambda: self.parent.add_likes_run_btn.setEnabled(True))
