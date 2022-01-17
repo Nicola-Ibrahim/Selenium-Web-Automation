@@ -5,7 +5,6 @@ A file should be used to store facebook accounts (email, password) and use them 
 
 import logging
 from PyQt5 import QtCore
-from requests.api import post
 
 from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
@@ -27,10 +26,10 @@ class FacbookAutomator(WebSiteAutomator):
     def __init__(self, driver: WebDriver) -> None:
  
         # create new logger for testing 
-        self._logger = self.init_logger("./logs/Facebook accounts logout info.log")
+        # self._logger = self.init_logger()
         super().__init__(driver, "https://www.facebook.com/") 
     
-    def init_logger(self):
+    def init_logger(self) -> logging.Logger:
         """Intial new logger
         path: logger file path
         """
@@ -38,13 +37,13 @@ class FacbookAutomator(WebSiteAutomator):
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.INFO)
         
-        handler = logging.FileHandler(filename="./logs/Facebook accounts logout info.log", mode='w')
+        handler = logging.FileHandler(filename="Facebook.log", mode='w')
         handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s"))
         logger.addHandler(handler)
 
         return logger
 
-    def go_to(self, path):
+    def go_to(self, path) -> None:
         """Go to specific path"""
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
         if(self.driver.current_url != path):
@@ -111,13 +110,17 @@ class FacbookAutomator(WebSiteAutomator):
         LOGIN_PASSOWRD_TEXTBOX_XPATH = "//input[@name = 'pass']"
         LOGIN_BUTTON_XPATH = "//button[@name='login']"
 
+        connected_state = self.is_connnected()
+        
         self.driver.get(self.website_url)
+        
+        reachable_state = self.is_reachable()
 
         # Search for email textBox, password textBox, and login button
         try:
-            email_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, LOGIN_EMAIL_TEXTBOX_XPATH)))
-            password_textBox = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, LOGIN_PASSOWRD_TEXTBOX_XPATH)))
-            login_button = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, LOGIN_BUTTON_XPATH)))
+            email_textBox = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, LOGIN_EMAIL_TEXTBOX_XPATH)))
+            password_textBox = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, LOGIN_PASSOWRD_TEXTBOX_XPATH)))
+            login_button = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, LOGIN_BUTTON_XPATH)))
 
             email_textBox.send_keys(email)
             password_textBox.send_keys(password)
@@ -125,7 +128,7 @@ class FacbookAutomator(WebSiteAutomator):
             
 
         except TimeoutException as e:
-            pass
+            self.logger_wrt_error(f"Can't find login web elements{e}")
     
     def dir_login(self, email:str, password:str, url:str):
         """Login into an account directly throught page"""
@@ -214,8 +217,8 @@ class FacbookAutomator(WebSiteAutomator):
             post_comment_box.send_keys(Keys.ENTER)
             
         except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
-            pass 
-        
+            self.logger_wrt_error(f"Can't find comment box web elements{e}")
+         
     def add_like_on_post(self, post_path:str):
         """Add like to a post"""
 
@@ -229,7 +232,7 @@ class FacbookAutomator(WebSiteAutomator):
             like_button.click()
 
         except TimeoutException as e:
-            pass
+            self.logger_wrt_error(f"Can't find post's like button web element{e}")
 
     def add_page_following(self, page_path:str):
         """Add following for a page"""
@@ -244,8 +247,8 @@ class FacbookAutomator(WebSiteAutomator):
             follow_button.click()
 
         except TimeoutException as e:
-            pass
-        
+            self.logger_wrt_error(f"Can't find page following button web element{e}")
+
     def add_like_on_page(self, page_path:str):
         """Add like on a page"""
 
@@ -256,8 +259,8 @@ class FacbookAutomator(WebSiteAutomator):
 
             like_button = WebDriverWait(self.driver, 1).until(EC.presence_of_all_elements_located((By.XPATH, PAGE_LIKE_BUTTON_XPATH)))[0]
             like_button.click()    
-        except:
-            pass
+        except TimeoutException as e:
+            self.logger_wrt_error(f"Can't find page like button web element{e}")
 
     def add_person(self, profile_path:str,):
         """Add person"""
@@ -336,13 +339,4 @@ class FacbookAutomator(WebSiteAutomator):
     
         pat = QtCore.QRegularExpression(r'/checkpoint/')
         return not pat.match(self.driver.current_url).hasMatch()
-    
-    def is_website_reached(self):
-        """Check if the website can be reached"""
 
-        try:
-            connected_span = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, self._CONNECTED_XPATH)))            
-            return False
-            
-        except TimeoutException as e:
-            pass
