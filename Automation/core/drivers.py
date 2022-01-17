@@ -1,5 +1,4 @@
 
-import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 # from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -15,16 +14,8 @@ import time
 class CustomeWebDriver(ABC):
     """Custome driver class"""
     def __init__(self) -> None:
-        self.driver: WebDriver = self.init_driver()
+        self.driver: WebDriver = None
 
-    def get_response(self, url:str, timeout:int = 10) -> bool:
-        """Get a response from the url to check if there is any connectino"""
-        try:
-            #r = requests.get(url, timeout=timeout)
-            r = requests.head(url, timeout=timeout)
-            return True
-        except requests.ConnectionError as ex:
-            return False
     
     def get_rquest_header(self):
         """Get the request information"""
@@ -107,13 +98,13 @@ class ChromeWebDriver(CustomeWebDriver):
         options.add_experimental_option("prefs", {"enable_do_not_track": True})
         options.add_experimental_option("excludeSwitches", ['enable-logging'])
         options.add_argument("--incognito")
-        driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
-        return driver
+        self.driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
+        # return driver
 
 
 class FirefoxWebDriver(CustomeWebDriver):
     """Firefox driver class with desired options"""
     def init_driver(self):            
-        driver =  webdriver.Firefox(executable_path='geckodriver.exe')
-        return driver
+        self.driver =  webdriver.Firefox(executable_path='geckodriver.exe')
+        # return driver
 
