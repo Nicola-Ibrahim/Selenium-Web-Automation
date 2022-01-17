@@ -4,6 +4,8 @@ If some forms as (login or logout ets...) have different shape then the method t
 that should be overriden.  
 """
 
+from logging import Logger
+import requests
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
@@ -18,21 +20,39 @@ class WebSiteAutomator(ABC):
     def __init__(self, driver: WebDriver, website_url:str) -> None:
         self.driver: WebDriver = driver
         self.website_url = website_url
+        
+        self._logger:Logger = self.init_logger()
     
+    
+    def logger_wrt_error(self, msg) -> None:
+        self._logger.error(msg=msg)
+
+    def logger_wrt_info(self, msg) -> None:
+        self._logger.info(msg=msg)
+        
     def is_reachable(self):
         """Check if the website can be reached"""
 
-        REACHABLE_XPATH = "//span[contains(text(),'This site can’t be reached') or contains(text(),'No internet')]"
+        REACHABLE_XPATH = "//span[contains(text(),'This site can’t be reached') or contains(text(),'No internet') or contains(text(),'Your connection was interrupted')]"
 
         try:
-            reachable_span = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located((By.XPATH, REACHABLE_XPATH)))            
+            reachable_span = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, REACHABLE_XPATH)))            
+            self.driver.refresh()
+            self.logger_wrt_error("The website is not reachable")
             
         except TimeoutException as e:
-            self.driver.refresh()
-        
-        else:
+            self.logger_wrt_info("The website is reachable")
             return True
-    
+        
+    def get_response(self, url:str, timeout:int = 10) -> bool:
+        """Get a response from the url to check if there is any connectino"""
+        try:
+            #r = requests.get(url, timeout=timeout)
+            r = requests.head(url, timeout=timeout)
+            return True
+        except requests.ConnectionError as ex:
+            return False
+
     def is_connnected(self):
         """Check if there is a connection to the internet"""
 
@@ -40,8 +60,7 @@ class WebSiteAutomator(ABC):
         while(True):
             connected = self.get_response(self.website_url)
             if(connected):
-                print("Connected to Enternet")
-                print("="*40)
+                self.logger_wrt_info("There is a connection to the enternet")
                 break
         return True
 
@@ -51,8 +70,7 @@ class WebSiteAutomator(ABC):
         """Intial new logger
         path: logger file path
         """
-
-        
+  
     @abstractmethod
     def sign_up(self):
         pass
