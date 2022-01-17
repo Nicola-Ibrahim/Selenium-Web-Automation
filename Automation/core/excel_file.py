@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import openpyxl
 import pandas as pd
 from pandas.core.frame import DataFrame 
@@ -27,19 +27,14 @@ class FacebookCommentsExcelFile(ExcelFile):
 
 class SelectedData(ABC):
     """Class is responsible for holding only desire accounts and comments data from the client"""
+
     def __init__(self, accounts_file: ExcelFile , start:int , end:int) -> None:
         self.accounts_file:ExcelFile = accounts_file
-        self.desire_accounts_data:DataFrame = self.accounts_file.data[start:end]
-
-
-        # self.num_of_workers:int = num_of_workers
-        # self.accounts_data_splits = {}
+        self.desire_accounts_data:DataFrame = self.accounts_file.data[self.accounts_file.data['Id'].isin(list(range(start,end+1)))]
         
-        # accounts_data_splits = self.splitting_fn(self.selected_data.accounts_data, num_of_workers)
-
+    
 class SelectedDataWithoutComments(SelectedData):
     """Class is responsible for holding only selected accounts data"""
-        
 
 class SelectedDataWithComments(SelectedData):
     """Class is responsible for holding only selected accounts and comments data"""
