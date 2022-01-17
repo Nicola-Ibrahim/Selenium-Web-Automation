@@ -195,20 +195,15 @@ class FacebookController():
         url = self.view.post_url_txt2.text()
         start_num = int(self.view.start_acc_range_txt2.text())
         end_num = int(self.view.end_acc_range_txt2.text())
-        num_of_workers = int(self.view.num_of_workers_txt2.text())
 
         # save post url in settings
         self.save_post_url(url)
 
         self.view.likes_counter_lbl.setText('0')
 
-
-
         selected_data = SelectedDataWithoutComments(self.accounts_file, start_num, end_num)
 
 
-        # Start driver
-    
 
         LikeOnPost(
             self.custom_driver, 
@@ -231,16 +226,15 @@ class FacebookController():
         start_num = int(self.view.start_acc_range_txt3.text())
         end_num = int(self.view.end_acc_range_txt3.text())
         comments_type = self.view.comments_type_comboBox2.currentText()
-        num_of_workers = int(self.view.num_of_workers_txt3.text())
 
         # save post url in settings
         self.save_post_url(url)
 
         self.view.comments_likes_counter_lbl.setText('0')
 
-
-        # Creating threads                        
         selected_data = SelectedDataWithComments(self.accounts_file, start_num, end_num, self.comments_file, comments_type)
+
+        # Creating thread                        
         LikeAndCommentOnPost(
             self.custom_driver, 
             self.mac_changer, 
@@ -406,11 +400,6 @@ class FacebookController():
         if(not reg.match(self.accounts_file_path).hasMatch()):
             return
 
-        # # check if the file is existed
-        # if(not os.path.isfile(self.accounts_file_path)):
-
-
-
         try:
             self.accounts_file = FacebookAccountsExcelFile(self.accounts_file_path)
     
@@ -431,6 +420,13 @@ class FacebookController():
         # Expection if file not found
         except FileNotFoundError as e:
             self.accounts_file_path = None
+            QtWidgets.QMessageBox.warning(
+                self.view,
+                "Warning",
+                "The facebook file is not existed !",
+                QtWidgets.QMessageBox.Ok,
+            )
+            return
             
 
 
@@ -490,15 +486,11 @@ class FacebookController():
                 )
             self.view.comments_file_txt.setText('')
             self.comments_file_path = None
-            # self.read_comments_file()
 
         except FileNotFoundError:
             self.comments_file_path = None
-            # self.read_comments_file()
 
         else:
-            # Reinialize values in text boxes
-            self.set_facbook_values()
 
             self.view.set_comments_in_comboBoxes(self.comments_file.data['Type'].unique().tolist())
 
