@@ -150,9 +150,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
     def check_comments_on_post_args(self):
         """Check if any of comments panel's textBoxes is empty"""
 
-        # Reset error text boxe
-        self.run_error_lbl1.setText('')
-        self.run_error_lbl1.setStyleSheet('')
+        
 
         url = self.post_url_txt1.text()
         start_num = self.start_acc_range_txt1.text()
@@ -200,9 +198,7 @@ class FacebookView(QtWidgets.QMainWindow, Ui_MainWindow):
     def check_likes_on_post_args(self):
         """Check if any of likes panel's textBoxes is empty"""
 
-        # Reset error text boxe
-        self.run_error_lbl2.setText('')
-        self.run_error_lbl2.setStyleSheet('')
+
 
         url = self.post_url_txt2.text()
         start_num = self.start_acc_range_txt2.text()
