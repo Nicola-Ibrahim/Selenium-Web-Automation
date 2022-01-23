@@ -9,7 +9,6 @@ from Automation.facebook_automation.model import FacebookAccountsModel, Facebook
 
 from PyQt5 import QtCore, QtWidgets
 
-import os
 from enum import Enum
 
 class AdapterType(Enum):
@@ -163,19 +162,21 @@ class FacebookController():
         url = self.view.post_url_txt1.text()
         start_num = int(self.view.start_acc_range_txt1.text())
         end_num = int(self.view.end_acc_range_txt1.text())
-        num_of_workers = int(self.view.num_of_workers_txt1.text())
         comments_type = self.view.comments_type_comboBox1.currentText()
         
 
         # Save post url
         self.save_post_url(url)
         
+        # Reset view components' value
+        # Reset passed accounts counter text box
         self.view.comments_counter_lbl.setText('0')
-        
+        # Reset error text box
+        self.view.comments_error_lbl.setText('')
+        self.view.comments_error_lbl.setStyleSheet('')
 
         selected_data = SelectedDataWithComments(self.accounts_file, start_num, end_num, self.comments_file, comments_type)
 
-        # Start driver
     
         CommentOnPost(
             self.custom_driver, 
@@ -199,7 +200,12 @@ class FacebookController():
         # save post url in settings
         self.save_post_url(url)
 
+        # Reset view components' value
+        # Reset passed accounts counter text box
         self.view.likes_counter_lbl.setText('0')
+        # Reset error text box
+        self.view.likes_error_lbl.setText('')
+        self.view.likes_error_lbl.setStyleSheet('')
 
         selected_data = SelectedDataWithoutComments(self.accounts_file, start_num, end_num)
 
@@ -230,7 +236,12 @@ class FacebookController():
         # save post url in settings
         self.save_post_url(url)
 
+        # Reset view components' value
+        # Reset passed accounts counter text box
         self.view.comments_likes_counter_lbl.setText('0')
+        # Reset error text box
+        self.view.comments_likes_error_lbl.setText('')
+        self.view.comments_likes_error_lbl.setStyleSheet('')
 
         selected_data = SelectedDataWithComments(self.accounts_file, start_num, end_num, self.comments_file, comments_type)
 
@@ -253,12 +264,16 @@ class FacebookController():
         url = self.view.page_url_txt4.text()
         start_num = int(self.view.start_acc_range_txt4.text())
         end_num = int(self.view.end_acc_range_txt4.text())
-        num_of_workers = int(self.view.num_of_workers_txt4.text())
 
         # save post url in settings
         self.save_page_url(url)
 
+        # Reset view components' value
+        # Reset passed accounts counter text box
         self.view.page_followings_counter_lbl.setText('0')
+        # Reset error text box
+        self.view.page_folllowing_error_lbl.setText('')
+        self.view.page_folllowing_error_lbl.setStyleSheet('')
 
         # Creating threads 
         selected_data = SelectedDataWithoutComments(self.accounts_file, start_num, end_num)
