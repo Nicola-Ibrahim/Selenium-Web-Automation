@@ -25,12 +25,14 @@ class WebSiteAutomator(ABC):
     
     
     def logger_wrt_error(self, msg) -> None:
+        """Write an error in log file occures during execution"""
         self._logger.error(msg=msg)
 
     def logger_wrt_info(self, msg) -> None:
+        """Write an information about execution process in log file"""
         self._logger.info(msg=msg)
         
-    def is_reachable(self):
+    def is_reachable(self) -> bool:
         """Check if the website can be reached"""
 
         REACHABLE_XPATH = "//span[contains(text(),'This site can’t be reached') or contains(text(),'No internet') or contains(text(),'Your connection was interrupted')]"
