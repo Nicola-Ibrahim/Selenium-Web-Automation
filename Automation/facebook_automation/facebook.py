@@ -3,21 +3,21 @@ This file is reponsible for autmating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
 
-import logging
-from PyQt5 import QtCore
-
-from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException
+from selenium.common.exceptions import ElementClickInterceptedException, ElementNotInteractableException, NoSuchElementException, TimeoutException, WebDriverException, NoSuchWindowException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.ui import Select
-from Automation.core.website_automator import WebSiteAutomator
 from selenium.webdriver.remote.webdriver import WebDriver
+from PyQt5 import QtCore
 
+
+import logging
 import re
 import time
 from datetime import datetime
+from Automation.core.website_automator import WebSiteAutomator
 
 
 class FacbookAutomator(WebSiteAutomator):
@@ -26,7 +26,6 @@ class FacbookAutomator(WebSiteAutomator):
     def __init__(self, driver: WebDriver) -> None:
  
         # create new logger for testing 
-        # self._logger = self.init_logger()
         super().__init__(driver, "https://www.facebook.com/") 
     
     def init_logger(self) -> logging.Logger:
@@ -45,12 +44,24 @@ class FacbookAutomator(WebSiteAutomator):
 
     def go_to(self, path, timeout:int=1) -> None:
         """Go to specific page or post path in facebook"""
-        WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-        if(self.driver.current_url != path):
-            self.driver.get(path)
-            reachable_state = self.is_reachable()
+
+        try:
+            WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
+            if(self.driver.current_url != path):
+                self.driver.get(path)
+                # reachable_state = self.is_reachable()
+                
+        except TimeoutException as e:
+            self.logger_wrt_error("Navigation to url path")
         
-    
+        else:
+            self.logger_wrt_info("Successfully navigated to url path")
+
+
+    def navigate_to_facebook(self) -> bool:
+        return self.is_reached()
+        
+
     def sign_up(self, first_name:str, last_name:str, email:str, password:str, date_of_birth, gender):
         """Sign up for new facebook account"""
 
@@ -109,19 +120,15 @@ class FacbookAutomator(WebSiteAutomator):
         """Login into an account"""
 
         LOGIN_EMAIL_TEXTBOX_XPATH = "//input[@name = 'email']"
-        LOGIN_PASSOWRD_TEXTBOX_XPATH = "//input[@name = 'pass']"
+        LOGIN_PASSWORD_TEXTBOX_XPATH = "//input[@name = 'pass']"
         LOGIN_BUTTON_XPATH = "//button[@name='login']"
 
-        connected_state = self.is_connnected()
         
-        self.driver.get(self.website_url)
-        
-        reachable_state = self.is_reachable()
 
         # Search for email textBox, password textBox, and login button
         try:
             email_textBox = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, LOGIN_EMAIL_TEXTBOX_XPATH)))
-            password_textBox = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, LOGIN_PASSOWRD_TEXTBOX_XPATH)))
+            password_textBox = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, LOGIN_PASSWORD_TEXTBOX_XPATH)))
             login_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, LOGIN_BUTTON_XPATH)))
 
             email_textBox.send_keys(email)
@@ -130,18 +137,19 @@ class FacbookAutomator(WebSiteAutomator):
         
 
         except TimeoutException as e:
-            self.logger_wrt_error(f"Can't find login web elements{e.msg}")
+            self.logger_wrt_error(f"Can't find login web element")
         
         else:
-            self.logger_wrt_info(f"Successfuly login into: {email}")
+            self.logger_wrt_info(f"Successfully login into: {email}")
+            return True
     
     def dir_login(self, email:str, password:str, url:str):
-        """Login into an account directly throught page"""
+        """Login into an account directly through page"""
 
         GO_LOGIN_BUTTON_XPATH = "/html/body/div[1]/div[3]/div[1]/div/div[2]/div[2]/div[1]/div/div[1]/div/div[2]/div[1]/a"
         
         LOGIN_EMAIL_TEXTBOX_XPATH = "//input[@name = 'email']"
-        LOGIN_PASSOWRD_TEXTBOX_XPATH = "//input[@name = 'pass']"
+        LOGIN_PASSWORD_TEXTBOX_XPATH = "//input[@name = 'pass']"
         LOGIN_BUTTON_XPATH = "//button[@name='login']"
 
         self.driver.get(url)
@@ -152,7 +160,7 @@ class FacbookAutomator(WebSiteAutomator):
             go_login_button.click()
 
             email_textBox = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, LOGIN_EMAIL_TEXTBOX_XPATH)))
-            password_textBox = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, LOGIN_PASSOWRD_TEXTBOX_XPATH)))
+            password_textBox = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, LOGIN_PASSWORD_TEXTBOX_XPATH)))
             login_button = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, LOGIN_BUTTON_XPATH)))
 
             email_textBox.send_keys(email)
@@ -163,8 +171,25 @@ class FacbookAutomator(WebSiteAutomator):
         except (TimeoutException or ElementNotInteractableException) as e:
             print(e)
 
-    def logout(self, logout_button_xpath2=None):
-        """Logout from account"""
+    def logout(self, timeout=1):
+        """Logout from active account"""
+
+        MENU_BUTTON_XPATH = "//div[@aria-label='Account' or @aria-label='More options' or @aria-label='الحساب' or @aria-label='خيارات إضافية']"
+        LOUTGOUT_BUTTON1_XPATH = "//span[contains(text(),'Log Out') or contains(text(),'تسجيل الخروج')]"                      
+        
+        # Search for the menu button and logout button    
+        try: 
+            menu_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, MENU_BUTTON_XPATH)))
+            menu_button.click() 
+
+            logout_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, LOUTGOUT_BUTTON1_XPATH)))
+            logout_button.click()
+
+        except (WebDriverException, TimeoutException, NoSuchElementException) as e:
+            pass
+    
+    def logout_non_active(self, timeout=1):
+        """Logout from disable account"""
 
         MENU_BUTTON_XPATH = "//div[@aria-label='Account' or @aria-label='More options' or @aria-label='الحساب' or @aria-label='خيارات إضافية']"
         LOUTGOUT_BUTTON1_XPATH = "//span[contains(text(),'Log Out') or contains(text(),'تسجيل الخروج')]"                      
@@ -172,15 +197,14 @@ class FacbookAutomator(WebSiteAutomator):
         
         # Search for the menu button and logout button    
         try: 
-            menu_button = WebDriverWait(self.driver, 3).until(EC.visibility_of_element_located((By.XPATH, MENU_BUTTON_XPATH)))
+            menu_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, MENU_BUTTON_XPATH)))
             menu_button.click() 
 
-            logout_button = WebDriverWait(self.driver, 3).until(EC.visibility_of_element_located((By.XPATH, LOUTGOUT_BUTTON1_XPATH)))
+            logout_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, LOUTGOUT_BUTTON1_XPATH)))
             logout_button.click()
 
-            if(logout_button_xpath2 != None):
-                logout_button = WebDriverWait(self.driver, 3).until(EC.visibility_of_element_located((By.XPATH, LOUTGOUT_BUTTON2_XPATH)))
-                logout_button.click()
+            logout_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, LOUTGOUT_BUTTON2_XPATH)))
+            logout_button.click()
 
 
         except (WebDriverException, TimeoutException, NoSuchElementException) as e:
@@ -213,73 +237,86 @@ class FacbookAutomator(WebSiteAutomator):
 
         COMMENT_TEXTBOX_XPATH = "//div[@aria-label='Write a comment' or @aria-label='كتابة تعليق'][@role='textbox']"
 
+        self.go_to(post_path)
 
         try:
-            self.go_to(post_path)
 
             post_comment_box = WebDriverWait(self.driver, timeout).until(EC.visibility_of_all_elements_located((By.XPATH, COMMENT_TEXTBOX_XPATH)))[0]
             post_comment_box.send_keys(comment)
             post_comment_box.send_keys(Keys.ENTER)
             
-        except (TimeoutException or ElementClickInterceptedException or ElementNotInteractableException) as e:
-            self.logger_wrt_error(f"Can't find comment box web elements{e.msg}")
+        except TimeoutException as e:
+            self.logger_wrt_error(f"Can't find comment box web element")
+        
+        except(ElementClickInterceptedException or ElementNotInteractableException) as e:
+            self.logger_wrt_error(f"The comment box web element is not clickable")
+            
         
         else:
-            self.logger_wrt_info(f"Successfuly write a comment: {comment}")
+            self.logger_wrt_info(f"Successfully write a comment: {comment}")
             
-         
     def add_like_on_post(self, post_path:str, timeout:int=1):
         """Add like to a post"""
 
         LIKE_BUTTON_XPATH = "//div[@aria-label='Like' or @aria-label='أعجبني'][@role='button']"
         
-        try:
-            self.go_to(post_path)
+        self.go_to(post_path)
 
+        try:
             
-            like_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_all_elements_located((By.XPATH, LIKE_BUTTON_XPATH)))[1]
+            like_button = WebDriverWait(self.driver, timeout).until(EC.presence_of_all_elements_located((By.XPATH, LIKE_BUTTON_XPATH)))[1]
             like_button.click()
 
         except TimeoutException as e:
-            self.logger_wrt_error(f"Can't find post's like button web element{e.msg}")
+            self.logger_wrt_error(f"Can't find post's like button web element")
+        
+        except(ElementClickInterceptedException or ElementNotInteractableException) as e:
+            self.logger_wrt_error(f"The like button web element is not clickable")
         
         else:
-            self.logger_wrt_info(f"Successfuly add a like on post")
+            self.logger_wrt_info(f"Successfully add a like on post")
             
-
     def add_page_following(self, page_path:str, timeout:int=1):
         """Add following for a page"""
 
         PAGE_FOLLOW_BUTTON_XPATH = "//div[@aria-label='Follow' or @aria-label='متابعة'][@role='button']"
+
+        self.go_to(page_path)
                                 
         try:
             
-            self.go_to(page_path)
             
             follow_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, PAGE_FOLLOW_BUTTON_XPATH)))
             follow_button.click()
 
         except TimeoutException as e:
-            self.logger_wrt_error(f"Can't find page following button web element{e}")
+            self.logger_wrt_error(f"Can't find page following button web element")
+        
+        except(ElementClickInterceptedException or ElementNotInteractableException) as e:
+            self.logger_wrt_error(f"The page following button web element is not clickable")
         
         else:
-            self.logger_wrt_info(f"Successfuly add page following")
+            self.logger_wrt_info(f"Successfully add page following")
 
     def add_like_on_page(self, page_path:str, timeout:int=1):
         """Add like on a page"""
 
         PAGE_LIKE_BUTTON_XPATH = "//div[@aria-label='Like' or @aria-label='أعجبني'][@role='button']"
 
+        self.go_to(page_path)
+
         try:
-            self.go_to(page_path)
 
             like_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_all_elements_located((By.XPATH, PAGE_LIKE_BUTTON_XPATH)))[0]
             like_button.click()    
+
         except TimeoutException as e:
             self.logger_wrt_error(f"Can't find page like button web element{e}")
 
+        except(ElementClickInterceptedException or ElementNotInteractableException) as e:
+            self.logger_wrt_error(f"The page like button web element is not clickable")
         else:
-            self.logger_wrt_info(f"Successfuly add a like on page")
+            self.logger_wrt_info(f"Successfully add a like on page")
 
     def add_person(self, profile_path:str):
         """Add person"""
