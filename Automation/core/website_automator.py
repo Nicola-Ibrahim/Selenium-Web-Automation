@@ -1,7 +1,7 @@
 """
 This the parent class that can be inherited to automate any website_url. 
-If some forms as (login or logout ets...) have different shape then the method that responsiable about 
-that should be overriden.  
+If some forms as (login or logout ets...) have different shape then the method that responsible about 
+that should be overridden.  
 """
 
 from logging import Logger
@@ -23,7 +23,6 @@ class WebSiteAutomator(ABC):
         
         self._logger:Logger = self.init_logger()
     
-    
     def logger_wrt_error(self, msg) -> None:
         """Write an error in log file occures during execution"""
         self._logger.error(msg=msg)
@@ -32,20 +31,47 @@ class WebSiteAutomator(ABC):
         """Write an information about execution process in log file"""
         self._logger.info(msg=msg)
         
-    def is_reachable(self) -> bool:
+    def is_connected(self):
+        """Check if there is a connection to the internet"""
+
+        
+        while(not self.get_response(self.website_url)):
+            # self.logger_wrt_error("Not connected to the enternet")
+            pass
+            
+        self.logger_wrt_info("Connected to the enternet...!")
+            
+        return True
+    
+    def __is_reachable(self) -> bool:
         """Check if the website can be reached"""
 
         REACHABLE_XPATH = "//span[contains(text(),'This site can’t be reached') or contains(text(),'No internet') or contains(text(),'Your connection was interrupted')]"
 
         try:
-            reachable_span = WebDriverWait(self.driver, 1).until(EC.presence_of_element_located((By.XPATH, REACHABLE_XPATH)))            
-            self.driver.refresh()
-            self.logger_wrt_error("The website is not reachable")
+            WebDriverWait(self.driver, 1).until_not(EC.presence_of_element_located((By.XPATH, REACHABLE_XPATH)))            
             
-        except TimeoutException as e:
-            self.logger_wrt_info("The website is reachable")
-            return True
+            
+        except TimeoutException:
+            # self.logger_wrt_error("The website is not reachable")
+            return False
         
+        else:
+            # self.logger_wrt_info("The website is reachable")
+            return True
+    
+    def is_reached(self) -> bool:
+        if(self.is_connected()):
+            self.driver.get(self.website_url)
+    
+            while(not self.__is_reachable()):
+                self.driver.refresh()
+                self.logger_wrt_error(f"UnsuccessfulLy reach to the {self.website_url}")
+            
+            self.logger_wrt_info(f"Successfully reach to the {self.website_url}")
+            return True
+                    
+            
     def get_response(self, url:str, timeout:int = 10) -> bool:
         """Get a response from the url to check if there is any connectino"""
         try:
@@ -55,16 +81,7 @@ class WebSiteAutomator(ABC):
         except requests.ConnectionError as ex:
             return False
 
-    def is_connnected(self):
-        """Check if there is a connection to the internet"""
-
-        # Keep running inside a loop until there is a connection
-        while(True):
-            connected = self.get_response(self.website_url)
-            if(connected):
-                self.logger_wrt_info("There is a connection to the enternet")
-                break
-        return True
+    
 
     
     @abstractmethod
