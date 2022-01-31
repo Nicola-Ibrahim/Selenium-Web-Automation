@@ -15,6 +15,7 @@ class CustomeWebDriver(ABC):
     """Custome driver class"""
     def __init__(self) -> None:
         self.driver: WebDriver = None
+        
 
     
     def get_rquest_header(self):
