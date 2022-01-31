@@ -2,8 +2,6 @@
 from PyQt5 import QtCore
 
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 
 from Automation.core.excel_file import SelectedData
 from Automation.facebook_automation.facebook import FacbookAutomator
@@ -43,7 +41,6 @@ class FacebookInteraction(QtCore.QThread):
         self.selected_data: SelectedData = selected_data
         self.settings: QtCore.QSettings = settings
         self.url: str = url
-        self.counter: int = 0
         self.parent = parent
         
         self.custom_driver.init_driver()
@@ -55,7 +52,8 @@ class FacebookInteraction(QtCore.QThread):
     def run(self):
         """Main runnable method to make interaction in Facebook website"""
 
-
+        counter: int = 0
+        
         try:
             # Looping to each account
             for ind, row in self.selected_data.desire_accounts_data.iterrows():
@@ -64,7 +62,7 @@ class FacebookInteraction(QtCore.QThread):
                 if(row['Account status'] == AccountStatus.INACTIVE.value):
                     continue
 
-                # Change MAC address (from execl or generate new one)
+                # Change MAC address (from excel or generate new one)
                 old_mac_address, new_mac_address = self.mac_changer.change_address(row['Mac address'])
                 self.facebook.logger_wrt_info(f"Old mac address: {old_mac_address}, New mac address: {new_mac_address}")
 
@@ -72,36 +70,37 @@ class FacebookInteraction(QtCore.QThread):
                 self.selected_data.accounts_file.sheet.cell(ind + 2, 13).value = new_mac_address if(new_mac_address != None) else ''
 
                 
+                # Navigate to facbook account
+                self.facebook.navigate_to_facebook()
+                
+                
                 # Login to the account
-                self.facebook.login(row['Email'], row['Facebook password'])
-
-
-                # self.settings.setValue('current_acc_ind', ind+1)
+                ret = self.facebook.login(row['Email'], row['Facebook password'])
 
                 # Check if the account is active
                 if(self.facebook.is_account_active()):
-                    self.selected_data.accounts_file.sheet.cell(ind + 2, 9).value = 'Active'
+                    self.selected_data.accounts_file.sheet.cell(ind + 2, 9).value = AccountStatus.ACTIVE.value
                     self.selected_data.accounts_file.sheet.cell(ind + 2, 7).value = self.facebook.get_profile_link()
                     
                     self.do_task()
                     
-                    self.counter += 1
-                    self.passed_acc_counter.emit(self.counter)
+                    counter += 1
+                    self.passed_acc_counter.emit(counter)
 
                 else:
-                    self.selected_data.accounts_file.sheet.cell(ind + 2, 9).value = 'Inactive'
+                    self.selected_data.accounts_file.sheet.cell(ind + 2, 9).value = AccountStatus.INACTIVE.value
 
 
                 # finish = perf_counter()
-                # self._logger.info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
+                # self.facebook.logger_wrt_info(f"""Logout from "{row['name']}" in {round(finish-start,2)} second(s)""")
                 self.custom_driver.open_new_tab()
                
             
         except (NoSuchWindowException, WebDriverException):
+            self.facebook.logger_wrt_error("The driver window is not existed...!")
             self.run_error.emit(row['Id'], row['Full name'])
         
         else:
-            # self.settings.setValue('current_acc_ind', 1)
             self.custom_driver.close()
             
         finally:
