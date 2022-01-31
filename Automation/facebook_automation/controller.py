@@ -1,4 +1,5 @@
 
+from typing import Dict
 from Automation.core.excel_file import FacebookAccountsExcelFile, FacebookCommentsExcelFile, SelectedDataWithComments, SelectedDataWithoutComments
 from Automation.core.mac_changer import EthernetMacChanger, MacChanger, WifiMacChanger
 from Automation.facebook_automation.tasks import CommentOnPost, LikeAndCommentOnPost, LikeOnPost, PageFollowing
@@ -15,9 +16,9 @@ class AdapterType(Enum):
     WIFI = 'Wi-Fi'
     ETHERNET = 'Ethernet'
 
-class DriverType(Enum):
-    CHROME = 'Chrome'
-    FIREFOX = 'FireFox'
+# class DriverType(Enum):
+#     CHROME = 'Chrome'
+#     FIREFOX = 'FireFox'
 
 class FacebookController():
     def __init__(self):
@@ -39,6 +40,12 @@ class FacebookController():
        
         self.accounts_file: FacebookAccountsExcelFile = None
         self.comments_file: FacebookCommentsExcelFile = None
+        
+        self.drivers: Dict = {
+            "Chrome": ChromeWebDriver(),
+            "Firefox": FirefoxWebDriver(),
+        }
+
         
         self.setup()
     
@@ -141,12 +148,10 @@ class FacebookController():
             
         elif(self.view.adapter_type_comboBox.currentText() == AdapterType.ETHERNET.value):
             self.mac_changer = EthernetMacChanger(self.view.adapter_name_txt.text())
-        
-        # Initializing a custom_driver
-        if(self.view.driver_type_comboBox.currentText() == DriverType.CHROME.value):
-            self.custom_driver = ChromeWebDriver()
-        elif(self.view.driver_type_comboBox.currentText() == DriverType.FIREFOX.value):
-            self.custom_driver = FirefoxWebDriver()
+
+
+        self.mac_changer = self.drivers[self.view.driver_type_comboBox.currentText()]
+        self.custom_driver = self.drivers[self.view.driver_type_comboBox.currentText()]
 
         
         self.set_adapter_property()
