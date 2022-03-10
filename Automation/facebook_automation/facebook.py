@@ -1,5 +1,5 @@
 """
-This file is reponsible for autmating many facebook website.
+This file is responsible for automating many facebook website.
 A file should be used to store facebook accounts (email, password) and use them to login.
 """
 
@@ -42,20 +42,20 @@ class FacbookAutomator(WebSiteAutomator):
 
         return logger
 
-    def go_to(self, path, timeout:int=1) -> None:
-        """Go to specific page or post path in facebook"""
+    def __go_to(self, url, timeout:int=1) -> None:
+        """Go to specific page or post url in facebook"""
 
         try:
             WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((By.XPATH, "//html[@id='facebook']")))
-            if(self.driver.current_url != path):
-                self.driver.get(path)
+            if(self.driver.current_url != url):
+                self.driver.get(url)
                 # reachable_state = self.is_reachable()
                 
         except TimeoutException as e:
-            self.logger_wrt_error("Navigation to url path")
+            self.logger_wrt_error("Navigation to url")
         
         else:
-            self.logger_wrt_info("Successfully navigated to url path")
+            self.logger_wrt_info("Successfully navigated to url")
 
 
     def navigate_to_facebook(self) -> bool:
@@ -210,7 +210,7 @@ class FacbookAutomator(WebSiteAutomator):
         except (WebDriverException, TimeoutException, NoSuchElementException) as e:
             pass
     
-    def chat(self, message:str, profile_path:str):
+    def chat(self, message:str, profile_url:str):
         """Chat with a person"""
 
           
@@ -219,7 +219,7 @@ class FacbookAutomator(WebSiteAutomator):
 
         # Search for message button and send a message
         try:
-            self.go_to(profile_path)
+            self.__go_to(profile_url)
             
             message_button = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, MESSAGE_BUTTON_XPATH)))
             message_button.click()
@@ -232,16 +232,16 @@ class FacbookAutomator(WebSiteAutomator):
         except TimeoutException as e:
             pass
     
-    def add_comment_on_post(self, post_path:str, comment:str, timeout:int=1):
+    def add_comment_on_post(self, post_url:str, comment:str, timeout:int=1):
         """Add comment on a post"""
 
         COMMENT_TEXTBOX_XPATH = "//div[@aria-label='Write a comment' or @aria-label='كتابة تعليق'][@role='textbox']"
 
-        self.go_to(post_path)
+        self.__go_to(post_url)
 
         try:
 
-            post_comment_box = WebDriverWait(self.driver, timeout).until(EC.visibility_of_all_elements_located((By.XPATH, COMMENT_TEXTBOX_XPATH)))[0]
+            post_comment_box = WebDriverWait(self.driver, timeout).until(EC.visibility_of_any_elements_located((By.XPATH, COMMENT_TEXTBOX_XPATH)))[0]
             post_comment_box.send_keys(comment)
             post_comment_box.send_keys(Keys.ENTER)
             
@@ -255,16 +255,16 @@ class FacbookAutomator(WebSiteAutomator):
         else:
             self.logger_wrt_info(f"Successfully write a comment: {comment}")
             
-    def add_like_on_post(self, post_path:str, timeout:int=1):
+    def add_like_on_post(self, post_url:str, timeout:int=1):
         """Add like to a post"""
 
         LIKE_BUTTON_XPATH = "//div[@aria-label='Like' or @aria-label='أعجبني'][@role='button']"
         
-        self.go_to(post_path)
+        self.__go_to(post_url)
 
         try:
             
-            like_button = WebDriverWait(self.driver, timeout).until(EC.presence_of_all_elements_located((By.XPATH, LIKE_BUTTON_XPATH)))[1]
+            like_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_any_elements_located((By.XPATH, LIKE_BUTTON_XPATH)))[1]
             like_button.click()
 
         except TimeoutException as e:
@@ -276,12 +276,12 @@ class FacbookAutomator(WebSiteAutomator):
         else:
             self.logger_wrt_info(f"Successfully add a like on post")
             
-    def add_page_following(self, page_path:str, timeout:int=1):
+    def add_page_following(self, page_url:str, timeout:int=1):
         """Add following for a page"""
 
         PAGE_FOLLOW_BUTTON_XPATH = "//div[@aria-label='Follow' or @aria-label='متابعة'][@role='button']"
 
-        self.go_to(page_path)
+        self.__go_to(page_url)
                                 
         try:
             
@@ -298,16 +298,16 @@ class FacbookAutomator(WebSiteAutomator):
         else:
             self.logger_wrt_info(f"Successfully add page following")
 
-    def add_like_on_page(self, page_path:str, timeout:int=1):
+    def add_like_on_page(self, page_url:str, timeout:int=1):
         """Add like on a page"""
 
         PAGE_LIKE_BUTTON_XPATH = "//div[@aria-label='Like' or @aria-label='أعجبني'][@role='button']"
 
-        self.go_to(page_path)
+        self.__go_to(page_url)
 
         try:
 
-            like_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_all_elements_located((By.XPATH, PAGE_LIKE_BUTTON_XPATH)))[0]
+            like_button = WebDriverWait(self.driver, timeout).until(EC.visibility_of_any_elements_located((By.XPATH, PAGE_LIKE_BUTTON_XPATH)))[0]
             like_button.click()    
 
         except TimeoutException as e:
@@ -318,7 +318,7 @@ class FacbookAutomator(WebSiteAutomator):
         else:
             self.logger_wrt_info(f"Successfully add a like on page")
 
-    def add_person(self, profile_path:str):
+    def add_person(self, profile_url:str):
         """Add person"""
 
         ADD_PERSON_BUTTON_XPATH = "//span[contains(text(),'Add Friend') or contains(text(),'إضافة صديق')]"
@@ -326,7 +326,7 @@ class FacbookAutomator(WebSiteAutomator):
 
         try:
             
-            self.go_to(profile_path)
+            self.__go_to(profile_url)
             
             add_button = WebDriverWait(self.driver, 1).until(EC.visibility_of_element_located((By.XPATH, ADD_PERSON_BUTTON_XPATH)))
             add_button.click()
@@ -334,7 +334,7 @@ class FacbookAutomator(WebSiteAutomator):
         except TimeoutException as e:
             pass
     
-    def accept_person(self, profile_path:str):
+    def accept_person(self, profile_url:str):
         """Accept person"""
 
         ACCEPT_PERSON_BUTTON_XPATH1 = "//span[contains(text(),'Respond') or contains(text(),'تأكيد الطلب')]"
@@ -342,7 +342,7 @@ class FacbookAutomator(WebSiteAutomator):
 
         try:
             
-            self.go_to(profile_path)
+            self.__go_to(profile_url)
             
             add_button = WebDriverWait(self.driver, 1).until(EC.visibility_of_element_located((By.XPATH, ACCEPT_PERSON_BUTTON_XPATH1)))
             add_button.click()
@@ -353,21 +353,21 @@ class FacbookAutomator(WebSiteAutomator):
         except TimeoutException as e:
             pass
 
-    def get_num_of_friends(self, profile_path:str):
+    def get_num_of_friends(self, profile_url:str, timeout=1):
         """Calculate the number of friends for specific profile"""
 
         NUM_OF_FRIENDS1_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[3]/div/div/div/div[1]/div/div/div[1]/div/div/div/div/div/div/a[3]/div[1]/span/span[2]"
         NUM_OF_FRIENDS2_XPATH = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div[1]/div[2]/div/div/div/div[3]/div/div/div[2]/span/a"  
         
 
-        self.go_to(profile_path)
+        self.__go_to(profile_url)
         
         try:
-            num_of_friends = WebDriverWait(self.driver, 5).until(EC.visibility_of_element_located((By.XPATH, NUM_OF_FRIENDS1_XPATH)))
+            num_of_friends = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, NUM_OF_FRIENDS1_XPATH)))
         
         except TimeoutException: 
             try:
-                num_of_friends2 = WebDriverWait(self.driver, 5).until(EC.visibility_of_element_located((By.XPATH, NUM_OF_FRIENDS2_XPATH)))
+                num_of_friends2 = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.XPATH, NUM_OF_FRIENDS2_XPATH)))
             
             except TimeoutException: 
                 pass 
