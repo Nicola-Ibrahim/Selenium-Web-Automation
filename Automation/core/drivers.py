@@ -10,9 +10,16 @@ from abc import ABC, abstractmethod
 
 from selenium.webdriver.remote.webdriver import WebDriver
 import time
+import enum
 
-class CustomeWebDriver(ABC):
-    """Custome driver class"""
+class BROWSERS(enum.Enum):
+    CHROME = "Chrome"
+    FIREFOX = "Firefox"
+    EDGE = "Edge"
+
+
+class CustomWebDriver(ABC):
+    """Custom driver class"""
     def __init__(self) -> None:
         self.driver: WebDriver = None
         
@@ -73,8 +80,8 @@ class CustomeWebDriver(ABC):
         # Close current window
         self.driver.close()
 
-        # Switch to focuse to the new created win
-        self.driver.switch_to_window(self.driver.window_handles[0])
+        # Switch to focus to the new created win
+        self.driver.switch_to.window(self.driver.window_handles[-1])
 
     def close(self):
         self.driver.close()
@@ -84,7 +91,7 @@ class CustomeWebDriver(ABC):
         """initial a new driver with desire optinons and capabilities"""
 
 
-class ChromeWebDriver(CustomeWebDriver):
+class ChromeWebDriver(CustomWebDriver):
     """Chrome driver class with desired options"""
     
     def init_driver(self):
@@ -100,12 +107,17 @@ class ChromeWebDriver(CustomeWebDriver):
         options.add_experimental_option("excludeSwitches", ['enable-logging'])
         options.add_argument("--incognito")
         self.driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
-        # return driver
 
 
-class FirefoxWebDriver(CustomeWebDriver):
+class FirefoxWebDriver(CustomWebDriver):
     """Firefox driver class with desired options"""
     def init_driver(self):            
         self.driver =  webdriver.Firefox(executable_path='geckodriver.exe')
-        # return driver
 
+
+class EdgeWebDriver(CustomWebDriver):
+    """Chrome driver class with desired options"""
+    
+    def init_driver(self):
+        
+        self.driver = webdriver.Edge(executable_path="msedgedriver.exe")
