@@ -66,9 +66,11 @@ class WebSiteAutomator(ABC):
     
             while(not self.__is_reachable()):
                 self.driver.refresh()
-                self.logger_wrt_error(f"UnsuccessfulLy reach to the {self.website_url}")
+                self.logger_wrt_error(f"The {self.website_url} website is not reachable")
+                # self.logger_wrt_error(f"UnsuccessfulLy reach to the {self.website_url}")
             
-            self.logger_wrt_info(f"Successfully reach to the {self.website_url}")
+            self.logger_wrt_info(f"The {self.website_url} website is reachable")
+            # self.logger_wrt_info(f"Successfully reach to the {self.website_url}")
             return True
                     
             
