@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>750</height>
+    <height>791</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -727,7 +727,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="login_btn">
              <property name="text">
               <string>Login</string>
              </property>
@@ -937,9 +937,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="login_btn">
+                <widget class="QPushButton" name="sign_in_btn">
                  <property name="text">
-                  <string>Login</string>
+                  <string>Sign in</string>
                  </property>
                 </widget>
                </item>
@@ -966,7 +966,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
             <item>
              <widget class="QLabel" name="label_15">
               <property name="text">
-               <string>ADD COMMENTS or LIKES</string>
+               <string>POST INTERACTION</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -1037,7 +1037,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 </widget>
                </item>
                <item>
-                <widget class="QCheckBox" name="post_like_btn">
+                <widget class="QCheckBox" name="post_like_checkBox">
                  <property name="text">
                   <string>LIkes</string>
                  </property>
@@ -1068,14 +1068,14 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                    <number>11</number>
                   </property>
                   <item>
-                   <widget class="QCheckBox" name="post_comment_btn">
+                   <widget class="QCheckBox" name="post_comment_checkBox">
                     <property name="text">
                      <string>Comments</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="comments_type_comboBox">
+                   <widget class="QComboBox" name="post_comments_type_comboBox">
                     <property name="enabled">
                      <bool>true</bool>
                     </property>
@@ -1187,7 +1187,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                      <enum>Qt::LeftToRight</enum>
                     </property>
                     <property name="text">
-                     <string>&gt;</string>
+                     <string>-&gt;</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -1265,7 +1265,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="comments_counter_lbl">
+                <widget class="QLabel" name="post_accounts_num_lbl">
                  <property name="text">
                   <string>0</string>
                  </property>
@@ -1316,7 +1316,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="comments_error_lbl">
+                <widget class="QLabel" name="post_error_lbl">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
@@ -1391,7 +1391,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
             <item>
              <widget class="QLabel" name="label_18">
               <property name="text">
-               <string>ADD PAGE FOLLOWING</string>
+               <string>PAGE INTERACTION</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -1462,9 +1462,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 </widget>
                </item>
                <item>
-                <widget class="QCheckBox" name="page_like_btn">
+                <widget class="QCheckBox" name="page_like_checkBox">
                  <property name="text">
-                  <string>LIkes</string>
+                  <string>LIke</string>
                  </property>
                 </widget>
                </item>
@@ -1493,7 +1493,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                    <number>11</number>
                   </property>
                   <item>
-                   <widget class="QCheckBox" name="page_follow_btn">
+                   <widget class="QCheckBox" name="page_follow_checkBox">
                     <property name="text">
                      <string>Follow</string>
                     </property>
@@ -1603,7 +1603,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                      <enum>Qt::LeftToRight</enum>
                     </property>
                     <property name="text">
-                     <string>&gt;</string>
+                     <string>-&gt;</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -1681,7 +1681,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="comments_counter_lbl_2">
+                <widget class="QLabel" name="page_accounts_num_lbl">
                  <property name="text">
                   <string>0</string>
                  </property>
@@ -1732,7 +1732,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="page_folllowing_error_lbl">
+                <widget class="QLabel" name="page_error_lbl">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
@@ -2508,16 +2508,6 @@ Likes</string>
                   <height>50</height>
                  </size>
                 </property>
-                <item>
-                 <property name="text">
-                  <string>Chrome</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Firefox</string>
-                 </property>
-                </item>
                </widget>
               </item>
               <item>
@@ -2860,9 +2850,9 @@ font: 12pt &quot;Century Gothic&quot;;</string>
  <resources/>
  <connections>
   <connection>
-   <sender>post_comment_btn</sender>
+   <sender>post_comment_checkBox</sender>
    <signal>clicked(bool)</signal>
-   <receiver>comments_type_comboBox</receiver>
+   <receiver>post_comments_type_comboBox</receiver>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
