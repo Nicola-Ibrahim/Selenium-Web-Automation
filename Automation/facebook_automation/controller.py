@@ -2,11 +2,12 @@
 from typing import Dict
 from Automation.core.excel_file import FacebookAccountsExcelFile, FacebookCommentsExcelFile, SelectedDataWithComments, SelectedDataWithoutComments
 from Automation.core.mac_changer import EthernetMacChanger, MacChanger, WifiMacChanger
+from Automation.facebook_automation.exceptions import NotChosenException, UrlException
 from Automation.facebook_automation.tasks import CommentOnPost, LikeAndCommentOnPost, LikeOnPost, PageFollowing
-from Automation.core.drivers import ChromeWebDriver, CustomeWebDriver, FirefoxWebDriver
+from Automation.core.drivers import BROWSERS, ChromeWebDriver, CustomWebDriver, EdgeWebDriver, FirefoxWebDriver
 
 from Automation.facebook_automation.view import FacebookView
-from Automation.facebook_automation.model import FacebookAccountsModel, FacebookAccountsSortoModel
+from Automation.facebook_automation.model import FacebookAccountsModel, FacebookAccountsSortModel
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -16,34 +17,31 @@ class AdapterType(Enum):
     WIFI = 'Wi-Fi'
     ETHERNET = 'Ethernet'
 
-# class DriverType(Enum):
-#     CHROME = 'Chrome'
-#     FIREFOX = 'FireFox'
-
 class FacebookController():
     def __init__(self):
         
-        # View intialization
+        # View initialization
         self.view: FacebookView = FacebookView(self)
 
         # Models initialization
         self.accounts_base_model: FacebookAccountsModel = None
-        self.accounts_sort_model: FacebookAccountsSortoModel = None
+        self.accounts_sort_model: FacebookAccountsSortModel = None
         
         # Create Setting file
         # self.settings = QtCore.QSettings('Viral Co.', 'Viral app')
         self.settings = QtCore.QSettings('Viral.ini', QtCore.QSettings.IniFormat)
 
         self.mac_changer: MacChanger = None
-        self.custom_driver: CustomeWebDriver = None
+        self.custom_driver: CustomWebDriver = None
         
        
         self.accounts_file: FacebookAccountsExcelFile = None
         self.comments_file: FacebookCommentsExcelFile = None
         
         self.drivers: Dict = {
-            "Chrome": ChromeWebDriver(),
-            "Firefox": FirefoxWebDriver(),
+            BROWSERS.CHROME.value: ChromeWebDriver(),
+            BROWSERS.FIREFOX.value: FirefoxWebDriver(),
+            BROWSERS.EDGE.value: EdgeWebDriver()
         }
 
         
@@ -60,21 +58,19 @@ class FacebookController():
         self.read_comments_file()
         self.set_post_url_txtBoxes()
         self.set_page_url_txtBoxes()
+        self.set_available_browsers()
 
         # Show the facebook main windows
         self.view.show()
 
+    def set_available_browsers(self):
+        self.view.driver_type_comboBox.addItems([browser.value for browser in BROWSERS])
+
     def set_post_url_txtBoxes(self):
-        
-        for txt_box in (
-            self.view.post_url_txt1,
-            self.view.post_url_txt2, 
-            self.view.post_url_txt3, 
-        ):
-            txt_box.setText(self.settings.value('post_url'))
+        self.view.post_url_txt.setText(self.settings.value('post_url'))
     
     def set_page_url_txtBoxes(self):        
-        self.view.post_url_txt5.setText(self.settings.value('post_url'))
+        self.view.page_url_txt.setText(self.settings.value('page_url'))
 
     def set_adapter_property(self):
         """Set adapter's properties values """
@@ -103,28 +99,12 @@ class FacebookController():
         # self.view.start_acc_range_txt2.setText(str(self.settings.value('current_acc_ind')))
         # self.view.start_acc_range_txt3.setText(str(self.settings.value('current_acc_ind')))
         # self.view.start_acc_range_txt4.setText(str(self.settings.value('current_acc_ind')))
-        self.view.start_acc_range_txt1.setText('1')
-        self.view.start_acc_range_txt2.setText('1')
-        self.view.start_acc_range_txt3.setText('1')
-        self.view.start_acc_range_txt4.setText('1')
+        self.view.post_start_acc_range_txt.setText('1')
+        self.view.page_start_acc_range_txt.setText('1')
 
         if(self.accounts_file.data is not None):
-            self.view.end_acc_range_txt1.setText(str(self.accounts_file.data.shape[0]))
-            self.view.end_acc_range_txt2.setText(str(self.accounts_file.data.shape[0]))
-            self.view.end_acc_range_txt3.setText(str(self.accounts_file.data.shape[0]))
-            self.view.end_acc_range_txt4.setText(str(self.accounts_file.data.shape[0]))
-        
-        self.view.num_of_workers_txt1.setText('1')
-        self.view.num_of_workers_txt2.setText('1')
-        self.view.num_of_workers_txt3.setText('1')
-        self.view.num_of_workers_txt4.setText('1')
-        self.view.num_of_workers_txt5.setText('1')
-
-        self.view.comments_counter_lbl.setText('0')
-        self.view.likes_counter_lbl.setText('0')
-        self.view.comments_likes_counter_lbl.setText('0')
-        self.view.page_followings_counter_lbl.setText('0')
-        self.view.groups_likes_comments_counter_lbl.setText('0')
+            self.view.post_end_acc_range_txt.setText(str(self.accounts_file.data.shape[0]))
+            self.view.page_end_acc_range_txt.setText(str(self.accounts_file.data.shape[0]))
 
     def save_post_url(self, url):
         self.settings.setValue('post_url', url)
@@ -150,149 +130,112 @@ class FacebookController():
             self.mac_changer = EthernetMacChanger(self.view.adapter_name_txt.text())
 
 
-        self.mac_changer = self.drivers[self.view.driver_type_comboBox.currentText()]
         self.custom_driver = self.drivers[self.view.driver_type_comboBox.currentText()]
 
         
         self.set_adapter_property()
         self.set_driver_property()
     
-    def add_comments_on_post(self):
-        """Add comments on a post"""
-        
+    def interact_w_post(self):
         # Check if any of the text boxes is empty
-        if(not self.view.check_comments_on_post_args()):
+
+        try:
+            values = self.view.check_on_post_args()
+
+        except (ValueError, NotChosenException, UrlException)  as e:
             return
+            
+        else:
+            # Save post url
+            self.save_post_url(values["url"])
+            
+            # Reset view components' value
+            # Reset passed accounts counter text box
+            self.view.post_accounts_num_lbl.setText('0')
+            
+            # Reset error text box
+            self.view.post_error_lbl.setText('')
+            self.view.post_error_lbl.setStyleSheet('')
 
-        url = self.view.post_url_txt1.text()
-        start_num = int(self.view.start_acc_range_txt1.text())
-        end_num = int(self.view.end_acc_range_txt1.text())
-        comments_type = self.view.comments_type_comboBox1.currentText()
+            urls = [values["url"]]
+
+            if(values["likes"] and values["comments"]):
+                selected_data = SelectedDataWithComments(self.accounts_file, values["start_num"], values["end_num"], self.comments_file, values["comments_type"])
+
+                LikeAndCommentOnPost(
+                    self.custom_driver, 
+                    self.mac_changer, 
+                    selected_data,
+                    self.settings, 
+                    urls,
+                    self.view,
+                )
+            
+            elif(values["likes"] and not values["comments"]):
+                selected_data = SelectedDataWithoutComments(self.accounts_file, values["start_num"], values["end_num"])
+
+                LikeOnPost(
+                    self.custom_driver, 
+                    self.mac_changer, 
+                    selected_data,
+                    self.settings, 
+                    urls,
+                    self.view,
+                )
+                
+            elif(values["comments"] and not values["likes"]):
+                selected_data = SelectedDataWithComments(self.accounts_file, values["start_num"], values["end_num"], self.comments_file, values["comments_type"])
+
+                CommentOnPost(
+                    self.custom_driver, 
+                    self.mac_changer, 
+                    selected_data,
+                    self.settings, 
+                    urls,
+                    self.view,
+                )
+
+    def interact_w_page(self):
+         # Check if any of the text boxes is empty
+
+        try:
+            values = self.view.check_on_page_args()
+
+        except (ValueError, NotChosenException, UrlException)  as e:
+            return
+            
+        else:
+            # Save post url
+            self.save_page_url(values["url"])
+            
+            # Reset view components' value
+            # Reset passed accounts counter text box
+            self.view.page_accounts_num_lbl.setText('0')
+            
+            # Reset error text box
+            self.view.page_error_lbl.setText('')
+            self.view.page_error_lbl.setStyleSheet('')
+
+            urls = [values["url"]]
+
         
-
-        # Save post url
-        self.save_post_url(url)
         
-        # Reset view components' value
-        # Reset passed accounts counter text box
-        self.view.comments_counter_lbl.setText('0')
-        # Reset error text box
-        self.view.comments_error_lbl.setText('')
-        self.view.comments_error_lbl.setStyleSheet('')
+            if(values["likes"] and values["follow"]):
+                selected_data = SelectedDataWithoutComments(self.accounts_file, values["start_num"], values["end_num"])
 
-        selected_data = SelectedDataWithComments(self.accounts_file, start_num, end_num, self.comments_file, comments_type)
-
+                PageFollowing(
+                    self.custom_driver, 
+                    self.mac_changer, 
+                    selected_data,
+                    self.settings, 
+                    urls,
+                    self.view,
+                )
+           
+            
     
-        CommentOnPost(
-            self.custom_driver, 
-            self.mac_changer, 
-            selected_data,
-            self.settings, 
-            url,
-            self.view,
-        )
     
-    def add_likes_on_post(self):
-        """Add likes on a post"""
-
-        if(not self.view.check_likes_on_post_args()):
-            return
-
-        url = self.view.post_url_txt2.text()
-        start_num = int(self.view.start_acc_range_txt2.text())
-        end_num = int(self.view.end_acc_range_txt2.text())
-
-        # save post url in settings
-        self.save_post_url(url)
-
-        # Reset view components' value
-        # Reset passed accounts counter text box
-        self.view.likes_counter_lbl.setText('0')
-        # Reset error text box
-        self.view.likes_error_lbl.setText('')
-        self.view.likes_error_lbl.setStyleSheet('')
-
-        selected_data = SelectedDataWithoutComments(self.accounts_file, start_num, end_num)
-
-
-
-        LikeOnPost(
-            self.custom_driver, 
-            self.mac_changer, 
-            selected_data,
-            self.settings, 
-            url,
-            self.view,
-        )
-
-    def add_likes_comments_on_post(self):
-        """Add likes and comments on a post"""
-
-        
-        if(not self.view.check_likes_comments_on_post_args()):
-            return
-
-
-        url = self.view.post_url_txt3.text()
-        start_num = int(self.view.start_acc_range_txt3.text())
-        end_num = int(self.view.end_acc_range_txt3.text())
-        comments_type = self.view.comments_type_comboBox2.currentText()
-
-        # save post url in settings
-        self.save_post_url(url)
-
-        # Reset view components' value
-        # Reset passed accounts counter text box
-        self.view.comments_likes_counter_lbl.setText('0')
-        # Reset error text box
-        self.view.comments_likes_error_lbl.setText('')
-        self.view.comments_likes_error_lbl.setStyleSheet('')
-
-        selected_data = SelectedDataWithComments(self.accounts_file, start_num, end_num, self.comments_file, comments_type)
-
-        # Creating thread                        
-        LikeAndCommentOnPost(
-            self.custom_driver, 
-            self.mac_changer, 
-            selected_data,
-            self.settings, 
-            url,
-            self.view,
-        )
-
-    def add_page_following(self):
-        """Add likes on a post"""
-
-        if(self.view.check_add_page_following_args()):
-            return
-
-        url = self.view.page_url_txt4.text()
-        start_num = int(self.view.start_acc_range_txt4.text())
-        end_num = int(self.view.end_acc_range_txt4.text())
-
-        # save post url in settings
-        self.save_page_url(url)
-
-        # Reset view components' value
-        # Reset passed accounts counter text box
-        self.view.page_followings_counter_lbl.setText('0')
-        # Reset error text box
-        self.view.page_folllowing_error_lbl.setText('')
-        self.view.page_folllowing_error_lbl.setStyleSheet('')
-
-        # Creating threads 
-        selected_data = SelectedDataWithoutComments(self.accounts_file, start_num, end_num)
-        
-        PageFollowing(
-            self.custom_driver, 
-            self.mac_changer, 
-            selected_data,
-            self.settings, 
-            url,
-            self.view,
-        )                       
-
-    def addMulitpleFriendsUIRun(self):
+    def addMultipleFriendsUIRun(self):
         """Add friends"""
        
         accounts_group = self.groups_comboBox1.currentText()
@@ -324,7 +267,7 @@ class FacebookController():
 
     def show_facebook_accounts(self):
         self.accounts_base_model = FacebookAccountsModel(self.accounts_data)
-        self.accounts_sort_model = FacebookAccountsSortoModel(self.accounts_base_model)
+        self.accounts_sort_model = FacebookAccountsSortModel(self.accounts_base_model)
         self.view.set_accounts_model(self.accounts_sort_model)
         
     def addLikes_CommentsOnFriendPostUIRun(self):

@@ -1,4 +1,5 @@
 
+from typing import List
 from PyQt5 import QtCore
 
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
@@ -6,7 +7,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from Automation.core.excel_file import SelectedData
 from Automation.facebook_automation.facebook import FacbookAutomator
 from Automation.core.mac_changer import MacChanger
-from Automation.core.drivers import CustomeWebDriver
+from Automation.core.drivers import CustomWebDriver
 from Automation.facebook_automation.view import FacebookView
 
 
@@ -21,7 +22,7 @@ from emoji.core import emojize
 
 class AccountStatus(Enum):
     INACTIVE = 'Inactive'
-    ACTIVE = 'Activer'
+    ACTIVE = 'Active'
 
 
 class FacebookInteraction(QtCore.QThread):
@@ -33,14 +34,14 @@ class FacebookInteraction(QtCore.QThread):
     # Sends number of passed accounts that work
     passed_acc_counter = QtCore.pyqtSignal(int)
 
-    def __init__(self, custom_driver: CustomeWebDriver, mac_changer: MacChanger, selected_data:SelectedData, settings: QtCore.QSettings, url: str, parent:FacebookView) :
+    def __init__(self, custom_driver: CustomWebDriver, mac_changer: MacChanger, selected_data:SelectedData, settings: QtCore.QSettings, urls: List[str], parent:FacebookView) :
         super().__init__(parent=parent)
 
-        self.custom_driver: CustomeWebDriver = custom_driver
+        self.custom_driver: CustomWebDriver = custom_driver
         self.mac_changer: MacChanger = mac_changer
         self.selected_data: SelectedData = selected_data
         self.settings: QtCore.QSettings = settings
-        self.url: str = url
+        self.urls: List[str] = urls
         self.parent = parent
         
         self.custom_driver.init_driver()
@@ -64,6 +65,7 @@ class FacebookInteraction(QtCore.QThread):
 
                 # Change MAC address (from excel or generate new one)
                 old_mac_address, new_mac_address = self.mac_changer.change_address(row['Mac address'])
+                self.facebook.logger_wrt_info("\n")
                 self.facebook.logger_wrt_info(f"Old mac address: {old_mac_address}, New mac address: {new_mac_address}")
 
                 # Put the new or old mac address in the related cell
@@ -123,54 +125,70 @@ class FacebookInteraction(QtCore.QThread):
 
 class CommentOnPost(FacebookInteraction):
     def do_task(self):
-        self.facebook.add_comment_on_post(self.url, emojize(self.selected_data.comments_file.data.sample(1)['Comments'].values[0], use_aliases=True))
-        self.facebook.logger_wrt_info(f"{self.selected_data.comments_file.data.sample(1)['Comments'].values}")
+        
+        for ind, url in enumerate(self.urls):
+            comment:str = emojize(self.selected_data.comments_file.data.sample(1)['Comments'].values[0])
+            self.facebook.logger_wrt_info(f"Trying to add a new comment to the post number -> {ind}")
+            self.facebook.add_comment_on_post(url, comment, use_aliases=True)
         
     def connect(self):
-        self.passed_acc_counter.connect(lambda count: self.parent.comments_counter_lbl.setText(f"{count}"))
-        self.run_error.connect(lambda ind, name: self.parent.comments_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
-        self.run_error.connect(lambda ind, name: self.parent.comments_error_lbl.setText(f"Error occured at -> {ind} : {name}"))
-        self.finished.connect(lambda: self.parent.add_comments_run_btn.setEnabled(True))
+        self.passed_acc_counter.connect(lambda count: self.parent.post_accounts_num_lbl.setText(f"{count}"))
+        self.run_error.connect(lambda ind, name: self.parent.post_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
+        self.run_error.connect(lambda ind, name: self.parent.post_error_lbl.setText(f"Error occurred at -> {ind} : {name}"))
+        self.finished.connect(lambda: self.parent.post_run_btn.setEnabled(True))
         self.finished.connect(self.deleteLater)
 
 
 class LikeOnPost(FacebookInteraction):
     
     def do_task(self):
-        self.facebook.add_like_on_post(self.url)
+        
+        for ind, url in enumerate(self.urls):
+            self.facebook.logger_wrt_info(f"Trying to add a like to the post number -> {ind}")
+            self.facebook.add_like_on_post(url)
+            
     
     def connect(self):
-        self.passed_acc_counter.connect(lambda count: self.parent.likes_counter_lbl.setText(f"{count}"))
-        self.run_error.connect(lambda ind, name: self.parent.likes_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
-        self.run_error.connect(lambda ind, name: self.parent.likes_error_lbl.setText(f"Error occured at -> {ind} : {name}"))
-        self.finished.connect(lambda: self.parent.add_likes_run_btn.setEnabled(True))
+        self.passed_acc_counter.connect(lambda count: self.parent.post_accounts_num_lbl.setText(f"{count}"))
+        self.run_error.connect(lambda ind, name: self.parent.post_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
+        self.run_error.connect(lambda ind, name: self.parent.post_error_lbl.setText(f"Error occurred at -> {ind} : {name}"))
+        self.finished.connect(lambda: self.parent.post_run_btn.setEnabled(True))
         self.finished.connect(self.deleteLater)
 
 
 class LikeAndCommentOnPost(FacebookInteraction):
     def do_task(self):
-        self.facebook.add_like_on_post(self.url)
-        self.facebook.add_comment_on_post(self.url, emojize(self.selected_data.comments_file.data.sample(1)['Comments'].values[0], use_aliases=True))
+
+        for ind, url in enumerate(self.urls):
+            self.facebook.logger_wrt_info(f"Trying to add to the post number -> {ind}")
+            self.facebook.add_like_on_post(url)
+            
+            self.facebook.logger_wrt_info(f"Trying to add a new comment to the post number -> {ind}")
+            comment:str = emojize(self.selected_data.comments_file.data.sample(1)['Comments'].values[0])
+            self.facebook.add_comment_on_post(url, comment, use_aliases=True)
     
     def connect(self):
-        self.passed_acc_counter.connect(lambda count: self.parent.comments_likes_counter_lbl.setText(f"{count}"))
-        self.run_error.connect(lambda ind, name: self.parent.comments_likes_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
-        self.run_error.connect(lambda ind, name: self.parent.comments_likes_error_lbl.setText(f"Error occured at -> {ind} : {name}"))
-        self.finished.connect(lambda: self.parent.add_likes_comments_run_btn.setEnabled(True))
+        self.passed_acc_counter.connect(lambda count: self.parent.post_accounts_num_lbl.setText(f"{count}"))
+        self.run_error.connect(lambda ind, name: self.parent.post_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
+        self.run_error.connect(lambda ind, name: self.parent.post_error_lbl.setText(f"Error occurred at -> {ind} : {name}"))
+        self.finished.connect(lambda: self.parent.post_run_btn.setEnabled(True))
         self.finished.connect(self.deleteLater)
     
 class PageFollowing(FacebookInteraction):
 
     def do_task(self):
-        self.facebook.add_page_following(self.url)
-        self.facebook.add_like_on_page(self.url)
+        
+        for ind, url in enumerate(self.urls):            
+            self.facebook.logger_wrt_info(f"Trying to add a like to the page -> {ind}")
+            self.facebook.add_page_following(url)
+            self.facebook.add_like_on_page(url)
 
     def connect(self):
 
-        self.passed_acc_counter.connect(lambda count: self.parent.page_followings_counter_lbl.setText(f"{count}"))
-        self.run_error.connect(lambda ind, name : self.parent.page_folllowing_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
-        self.run_error.connect(lambda ind, name: self.parent.page_folllowing_error_lbl.setText(f"Error occured at -> {ind} : {name}"))
-        self.finished.connect(lambda : self.parent.add_page_followings_run_btn.setEnabled(True))
+        self.passed_acc_counter.connect(lambda count: self.parent.page_accounts_num_lbl.setText(f"{count}"))
+        self.run_error.connect(lambda ind, name : self.parent.page_error_lbl.setStyleSheet("color: rgb(255,0,0);"))
+        self.run_error.connect(lambda ind, name: self.parent.page_error_lbl.setText(f"Error occurred at -> {ind} : {name}"))
+        self.finished.connect(lambda : self.parent.page_run_btn.setEnabled(True))
         self.finished.connect(self.deleteLater)
 
 
